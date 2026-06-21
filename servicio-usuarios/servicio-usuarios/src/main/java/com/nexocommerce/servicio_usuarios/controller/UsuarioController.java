@@ -1,67 +1,53 @@
-/*
- * Decompiled with CFR 0.151.
- * 
- * Could not load the following classes:
- *  lombok.Generated
- *  org.springframework.http.ResponseEntity
- *  org.springframework.web.bind.annotation.DeleteMapping
- *  org.springframework.web.bind.annotation.GetMapping
- *  org.springframework.web.bind.annotation.PathVariable
- *  org.springframework.web.bind.annotation.PostMapping
- *  org.springframework.web.bind.annotation.PutMapping
- *  org.springframework.web.bind.annotation.RequestBody
- *  org.springframework.web.bind.annotation.RequestMapping
- *  org.springframework.web.bind.annotation.RestController
- */
 package com.nexocommerce.servicio_usuarios.controller;
 
 import com.nexocommerce.servicio_usuarios.model.UsuarioModel;
 import com.nexocommerce.servicio_usuarios.service.UsuarioService;
-import java.util.List;
-import lombok.Generated;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+/*
+ * Controlador REST del microservicio de usuarios.
+ * Expone endpoints para listar, buscar, crear,
+ * actualizar y eliminar usuarios.
+ */
 @RestController
-@RequestMapping(value={"/api/usuarios"})
+@RequestMapping("/api/usuarios")
+@RequiredArgsConstructor
 public class UsuarioController {
+
     private final UsuarioService service;
 
-    @GetMapping(value={"/listar"})
+    // Lista todos los usuarios registrados.
+    @GetMapping("/listar")
     public ResponseEntity<List<UsuarioModel>> listar() {
-        return ResponseEntity.ok(this.service.listar());
+        return ResponseEntity.ok(service.listar());
     }
 
-    @GetMapping(value={"/{id}"})
-    public ResponseEntity<UsuarioModel> buscar(@PathVariable Long id) {
-        return ResponseEntity.ok((Object)this.service.buscar(id));
+    // Busca un usuario por su ID.
+    @GetMapping("/{id}")
+    public ResponseEntity<?> buscar(@PathVariable Long id) {
+        return ResponseEntity.ok(service.buscar(id));
     }
 
-    @PostMapping(value={"/crear"})
-    public ResponseEntity<UsuarioModel> crear(@RequestBody UsuarioModel usuario) {
-        return ResponseEntity.ok((Object)this.service.guardar(usuario));
+    // Crea un nuevo usuario.
+    @PostMapping("/crear")
+    public ResponseEntity<?> crear(@RequestBody UsuarioModel usuario) {
+        return ResponseEntity.ok(service.guardar(usuario));
     }
 
-    @PutMapping(value={"/{id}"})
-    public ResponseEntity<UsuarioModel> actualizar(@PathVariable Long id, @RequestBody UsuarioModel usuario) {
-        return ResponseEntity.ok((Object)this.service.actualizar(id, usuario));
+    // Actualiza un usuario existente.
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody UsuarioModel usuario) {
+        return ResponseEntity.ok(service.actualizar(id, usuario));
     }
 
-    @DeleteMapping(value={"/{id}"})
+    // Elimina un usuario por ID.
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> eliminar(@PathVariable Long id) {
-        this.service.eliminar(id);
-        return ResponseEntity.ok((Object)"Usuario eliminado correctamente");
-    }
-
-    @Generated
-    public UsuarioController(UsuarioService service) {
-        this.service = service;
+        service.eliminar(id);
+        return ResponseEntity.ok("Usuario eliminado correctamente");
     }
 }

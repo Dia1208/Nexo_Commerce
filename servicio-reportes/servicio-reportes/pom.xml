@@ -13,28 +13,15 @@
 	</parent>
 
 	<groupId>com.nexocommerce</groupId>
-	<artifactId>servicio-reportes-orquestador</artifactId>
+	<artifactId>servicio-reportes</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>servicio-reportes-orquestador</name>
-	<description>Servicio de reportes y orquestacion de NexoCommerce</description>
+	<name>servicio-reportes</name>
+	<description>Servicio de reportes de NexoCommerce</description>
 
 	<properties>
 		<java.version>21</java.version>
-		<spring-cloud.version>2025.0.3</spring-cloud.version>
 		<springdoc.version>2.8.17</springdoc.version>
 	</properties>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<dependencies>
 
@@ -44,10 +31,17 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!-- OpenFeign para llamar a otros microservicios -->
+		<!-- JPA para base de datos -->
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-openfeign</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<!-- MySQL -->
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 		<!-- Validaciones -->
@@ -103,3 +97,4 @@
 	</build>
 
 </project>
+

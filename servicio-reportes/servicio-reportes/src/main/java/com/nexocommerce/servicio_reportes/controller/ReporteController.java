@@ -2,7 +2,6 @@ package com.nexocommerce.servicio_reportes.controller;
 
 import com.nexocommerce.servicio_reportes.dto.ReporteRequest;
 import com.nexocommerce.servicio_reportes.dto.ReporteResponse;
-import com.nexocommerce.servicio_reportes.entity.TipoReporte;
 import com.nexocommerce.servicio_reportes.service.ReporteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /*
  * Controlador REST del microservicio de reportes.
- * Expone endpoints para gestionar reportes.
+ * Expone los endpoints para listar, crear, buscar y eliminar reportes.
  */
 @RestController
 @RequestMapping("/api/reportes")
@@ -21,33 +22,25 @@ public class ReporteController {
 
     private final ReporteService reporteService;
 
-    // Lista todos los reportes.
+    // Lista todos los reportes registrados.
     @GetMapping
-    public ResponseEntity<?> listar() {
+    public ResponseEntity<List<ReporteResponse>> listar() {
         return ResponseEntity.ok(reporteService.listar());
     }
 
-    // Busca un reporte por id.
+    // Busca un reporte por su identificador.
     @GetMapping("/{id}")
-    public ResponseEntity<ReporteResponse> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(reporteService.buscarPorId(id));
-    }
-
-    // Lista reportes por tipo.
-    @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<?> listarPorTipo(@PathVariable TipoReporte tipo) {
-        return ResponseEntity.ok(reporteService.listarPorTipo(tipo));
     }
 
     // Crea un nuevo reporte.
     @PostMapping
-    public ResponseEntity<ReporteResponse> crear(@Valid @RequestBody ReporteRequest request) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(reporteService.crear(request));
+    public ResponseEntity<?> crear(@Valid @RequestBody ReporteRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(reporteService.crear(request));
     }
 
-    // Elimina un reporte.
+    // Elimina un reporte por su identificador.
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         reporteService.eliminar(id);

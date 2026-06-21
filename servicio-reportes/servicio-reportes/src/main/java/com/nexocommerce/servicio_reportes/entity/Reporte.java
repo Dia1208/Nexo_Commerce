@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 
 /*
  * Esta clase representa un reporte generado en el sistema.
- * Guarda información resumida para análisis.
+ * Se almacena en la base de datos con información de análisis
+ * y métricas sobre pedidos, productos y ventas.
  */
 @Entity
 @Table(name = "reportes")

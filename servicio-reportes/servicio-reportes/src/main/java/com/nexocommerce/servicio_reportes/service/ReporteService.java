@@ -1,91 +1,60 @@
+/*
+ * Decompiled with CFR 0.151.
+ *
+ * Could not load the following classes:
+ *  lombok.Generated
+ *  org.slf4j.Logger
+ *  org.slf4j.LoggerFactory
+ *  org.springframework.stereotype.Service
+ */
 package com.nexocommerce.servicio_reportes.service;
 
 import com.nexocommerce.servicio_reportes.dto.ReporteRequest;
 import com.nexocommerce.servicio_reportes.dto.ReporteResponse;
 import com.nexocommerce.servicio_reportes.entity.Reporte;
-import com.nexocommerce.servicio_reportes.entity.TipoReporte;
 import com.nexocommerce.servicio_reportes.exception.ResourceNotFoundException;
 import com.nexocommerce.servicio_reportes.repository.ReporteRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Generated;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
-/*
- * Esta clase contiene la lógica de negocio de reportes.
- * Aquí se crean, consultan y eliminan reportes.
- */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class ReporteService {
-
+    @Generated
+    private static final Logger log = LoggerFactory.getLogger(ReporteService.class);
     private final ReporteRepository reporteRepository;
 
-    // Lista todos los reportes.
     public List<ReporteResponse> listar() {
-        return reporteRepository.findAll()
-                .stream()
-                .map(this::mapearAResponse)
-                .toList();
+        return this.reporteRepository.findAll().stream().map(this::mapearAResponse).toList();
     }
 
-    // Busca un reporte por id.
     public ReporteResponse buscarPorId(Long id) {
-        Reporte reporte = reporteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Reporte no encontrado con id: " + id));
-
-        return mapearAResponse(reporte);
+        Reporte reporte = (Reporte)this.reporteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
+        return this.mapearAResponse(reporte);
     }
 
-    // Lista reportes por tipo.
-    public List<ReporteResponse> listarPorTipo(TipoReporte tipo) {
-        return reporteRepository.findByTipo(tipo)
-                .stream()
-                .map(this::mapearAResponse)
-                .toList();
-    }
-
-    // Crea un nuevo reporte.
     public ReporteResponse crear(ReporteRequest request) {
-        Reporte reporte = Reporte.builder()
-                .nombre(request.getNombre())
-                .tipo(request.getTipo())
-                .cantidadPedidos(request.getCantidadPedidos())
-                .cantidadProductos(request.getCantidadProductos())
-                .totalVentas(request.getTotalVentas())
-                .fechaGeneracion(LocalDateTime.now())
-                .build();
-
-        Reporte reporteGuardado = reporteRepository.save(reporte);
-
-        log.info("Reporte creado con id: {}", reporteGuardado.getId());
-
-        return mapearAResponse(reporteGuardado);
+        Reporte reporte = Reporte.builder().nombre(request.getNombre()).tipo(request.getTipo()).cantidadPedidos(request.getCantidadPedidos()).cantidadProductos(request.getCantidadProductos()).totalVentas(request.getTotalVentas()).fechaGeneracion(LocalDateTime.now()).build();
+        Reporte reporteGuardado = (Reporte)this.reporteRepository.save(reporte);
+        log.info("Reporte creado con id: {}", (Object)reporteGuardado.getId());
+        return this.mapearAResponse(reporteGuardado);
     }
 
-    // Elimina un reporte.
     public void eliminar(Long id) {
-        Reporte reporte = reporteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Reporte no encontrado con id: " + id));
-
-        reporteRepository.delete(reporte);
-
-        log.info("Reporte eliminado con id: {}", id);
+        Reporte reporte = (Reporte)this.reporteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
+        this.reporteRepository.delete(reporte);
+        log.info("Reporte eliminado con id: {}", (Object)id);
     }
 
-    // Convierte entidad a DTO.
     private ReporteResponse mapearAResponse(Reporte reporte) {
-        return new ReporteResponse(
-                reporte.getId(),
-                reporte.getNombre(),
-                reporte.getTipo(),
-                reporte.getCantidadPedidos(),
-                reporte.getCantidadProductos(),
-                reporte.getTotalVentas(),
-                reporte.getFechaGeneracion()
-        );
+        return new ReporteResponse(reporte.getId(), reporte.getNombre(), reporte.getTipo(), reporte.getCantidadPedidos(), reporte.getCantidadProductos(), reporte.getTotalVentas(), reporte.getFechaGeneracion());
+    }
+
+    @Generated
+    public ReporteService(ReporteRepository reporteRepository) {
+        this.reporteRepository = reporteRepository;
     }
 }

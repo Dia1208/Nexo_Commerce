@@ -1,16 +1,16 @@
-/*
- * Decompiled with CFR 0.151.
- * 
- * Could not load the following classes:
- *  org.springframework.data.jpa.repository.JpaRepository
- */
 package com.nexocommerce.servicio_usuarios.repository;
 
 import com.nexocommerce.servicio_usuarios.model.UsuarioModel;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UsuarioRepository
-extends JpaRepository<UsuarioModel, Long> {
-    public Optional<UsuarioModel> findByCorreo(String var1);
+import java.util.Optional;
+
+/*
+ * Repositorio encargado de las operaciones CRUD
+ * sobre la entidad UsuarioModel.
+ */
+public interface UsuarioRepository extends JpaRepository<UsuarioModel, Long> {
+
+    // Busca un usuario por su correo.
+    Optional<UsuarioModel> findByCorreo(String correo);
 }

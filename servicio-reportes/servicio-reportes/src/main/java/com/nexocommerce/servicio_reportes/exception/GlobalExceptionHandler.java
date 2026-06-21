@@ -8,39 +8,56 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /*
- * Esta clase maneja los errores globales del microservicio.
- * Evita repetir respuestas de error en cada controlador.
+ * Esta clase maneja las excepciones globales del microservicio de reportes.
+ * Permite devolver respuestas de error claras cuando ocurre un problema,
+ * por ejemplo cuando un reporte no existe o cuando los datos enviados no son válidos.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Maneja recursos no encontrados.
+    /*
+     * Maneja el error cuando no se encuentra un reporte.
+     */
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> recursoNoEncontrado(ResourceNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse("RECURSO_NO_ENCONTRADO", ex.getMessage()));
+    public ResponseEntity<?> manejarReporteNoEncontrado(ResourceNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                ex.getMessage(),
+                HttpStatus.NOT_FOUND.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    // Maneja errores de validación.
+    /*
+     * Maneja errores de validación enviados desde los DTO.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> validacion(MethodArgumentNotValidException ex) {
-
+    public ResponseEntity<?> manejarValidaciones(MethodArgumentNotValidException ex) {
         String mensaje = ex.getBindingResult()
                 .getFieldErrors()
-                .get(0)
-                .getDefaultMessage();
+                .stream()
+                .findFirst()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .orElse("Error de validación");
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("VALIDACION_ERROR", mensaje));
+        ErrorResponse error = new ErrorResponse(
+                mensaje,
+                HttpStatus.BAD_REQUEST.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    // Maneja errores generales.
+    /*
+     * Maneja cualquier error inesperado del microservicio.
+     */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> errorGeneral(Exception ex) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("ERROR_INTERNO", "Ocurrió un error interno"));
+    public ResponseEntity<?> manejarExcepcionGeneral(Exception ex) {
+        ErrorResponse error = new ErrorResponse(
+                "Error interno del servidor",
+                HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

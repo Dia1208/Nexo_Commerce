@@ -10,16 +10,17 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 /*
- * DTO utilizado para crear reportes.
+ * DTO utilizado para recibir los datos necesarios
+ * al crear un reporte.
  */
 @Data
 public class ReporteRequest {
 
-    // Nombre obligatorio del reporte.
+    // Nombre del reporte.
     @NotBlank(message = "El nombre del reporte es obligatorio")
     private String nombre;
 
-    // Tipo obligatorio del reporte.
+    // Tipo del reporte.
     @NotNull(message = "El tipo de reporte es obligatorio")
     private TipoReporte tipo;
 

@@ -1,42 +1,66 @@
-/*
- * Decompiled with CFR 0.151.
- * 
- * Could not load the following classes:
- *  org.springframework.http.HttpStatus
- *  org.springframework.http.HttpStatusCode
- *  org.springframework.http.ResponseEntity
- *  org.springframework.validation.FieldError
- *  org.springframework.web.bind.MethodArgumentNotValidException
- *  org.springframework.web.bind.annotation.ExceptionHandler
- *  org.springframework.web.bind.annotation.RestControllerAdvice
- */
 package com.nexocommerce.servicio_pedidos.exception;
 
 import com.nexocommerce.servicio_pedidos.dto.ErrorResponse;
-import com.nexocommerce.servicio_pedidos.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/*
+ * Esta clase maneja las excepciones globales del microservicio de pedidos.
+ * Permite devolver respuestas de error claras cuando ocurre un problema,
+ * por ejemplo cuando un pedido no existe o cuando los datos enviados no son válidos.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(value={ResourceNotFoundException.class})
-    public ResponseEntity<ErrorResponse> recursoNoEncontrado(ResourceNotFoundException ex) {
-        return ResponseEntity.status((HttpStatusCode)HttpStatus.NOT_FOUND).body((Object)new ErrorResponse("RECURSO_NO_ENCONTRADO", ex.getMessage()));
+
+    /*
+     * Maneja el error cuando no se encuentra un recurso.
+     * Por ejemplo, cuando se busca un pedido por un ID que no existe.
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> manejarResourceNotFoundException(ResourceNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                ex.getMessage(),
+                HttpStatus.NOT_FOUND.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    @ExceptionHandler(value={MethodArgumentNotValidException.class})
-    public ResponseEntity<ErrorResponse> validacion(MethodArgumentNotValidException ex) {
-        String mensaje = ((FieldError)ex.getBindingResult().getFieldErrors().get(0)).getDefaultMessage();
-        return ResponseEntity.status((HttpStatusCode)HttpStatus.BAD_REQUEST).body((Object)new ErrorResponse("VALIDACION_ERROR", mensaje));
+    /*
+     * Maneja errores de validación.
+     * Se ejecuta cuando un DTO no cumple con las anotaciones como @NotBlank, @NotNull o @Positive.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> manejarValidaciones(MethodArgumentNotValidException ex) {
+        String mensaje = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .findFirst()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .orElse("Error de validación");
+
+        ErrorResponse error = new ErrorResponse(
+                mensaje,
+                HttpStatus.BAD_REQUEST.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    @ExceptionHandler(value={Exception.class})
-    public ResponseEntity<ErrorResponse> errorGeneral(Exception ex) {
-        return ResponseEntity.status((HttpStatusCode)HttpStatus.INTERNAL_SERVER_ERROR).body((Object)new ErrorResponse("ERROR_INTERNO", "Ocurri\u00f3 un error interno"));
+    /*
+     * Maneja cualquier otro error inesperado.
+     * Evita que el microservicio devuelva errores técnicos difíciles de entender.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> manejarExcepcionGeneral(Exception ex) {
+        ErrorResponse error = new ErrorResponse(
+                "Error interno del servidor",
+                HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }
