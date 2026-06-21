@@ -2,6 +2,7 @@ package com.nexocommerce.servicio_reportes.controller;
 
 import com.nexocommerce.servicio_reportes.dto.ReporteRequest;
 import com.nexocommerce.servicio_reportes.dto.ReporteResponse;
+import com.nexocommerce.servicio_reportes.entity.TipoReporte;
 import com.nexocommerce.servicio_reportes.service.ReporteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,5 +46,9 @@ public class ReporteController {
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         reporteService.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/tipo/{tipo}")
+    public ResponseEntity<List<ReporteResponse>> listarPorTipo(@PathVariable TipoReporte tipo) {
+        return ResponseEntity.ok(reporteService.listarPorTipo(tipo));
     }
 }
