@@ -1,4 +1,4 @@
-package com.nexocommerce.servicio_productos.dto;
+package com.nexocommerce.servicio_autenticacion.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 /*
  * DTO utilizado para devolver respuestas de error simples.
- * Permite enviar un mensaje entendible y el código HTTP del error.
+ * Permite enviar al cliente un mensaje claro y el código HTTP correspondiente.
  */
 @Data
 @NoArgsConstructor

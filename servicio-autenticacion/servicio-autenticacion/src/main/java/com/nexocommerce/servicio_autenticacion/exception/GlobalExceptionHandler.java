@@ -1,6 +1,6 @@
-package com.nexocommerce.servicio_pedidos.exception;
+package com.nexocommerce.servicio_autenticacion.exception;
 
-import com.nexocommerce.servicio_pedidos.dto.ErrorResponse;
+import com.nexocommerce.servicio_autenticacion.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -12,45 +12,50 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /*
- * Esta clase maneja las excepciones globales del microservicio de pedidos.
- * Permite devolver respuestas de error claras cuando ocurre un problema,
- * por ejemplo cuando un pedido no existe, cuando faltan datos obligatorios
- * o cuando se envía un estado inválido.
+ * Esta clase maneja las excepciones globales del microservicio de autenticación.
+ * Permite devolver respuestas claras cuando ocurre un error durante el registro,
+ * el inicio de sesión o cuando los datos enviados no son válidos.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /*
-     * Maneja el error cuando no se encuentra un recurso.
-     * Por ejemplo, cuando se busca, actualiza o cancela un pedido con un ID que no existe.
+     * Maneja errores de tipo RuntimeException.
+     * En este microservicio se usa para errores como:
+     * - El correo ya está registrado.
+     * - Correo o contraseña incorrectos.
+     *
+     * En vez de devolver 500, devuelve 400 porque normalmente
+     * son errores provocados por datos enviados por el cliente.
      */
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<?> manejarResourceNotFoundException(ResourceNotFoundException ex) {
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> manejarRuntimeException(RuntimeException ex) {
         ErrorResponse error = new ErrorResponse(
                 ex.getMessage(),
-                HttpStatus.NOT_FOUND.value()
+                HttpStatus.BAD_REQUEST.value()
         );
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     /*
      * Maneja errores de validación.
-     * Se ejecuta cuando un DTO no cumple con las anotaciones como:
-     * @NotBlank, @NotNull, @Min o @DecimalMin.
+     * Se ejecuta cuando RegistroRequest o LoginRequest no cumplen
+     * con anotaciones como @NotBlank, @Email, @Size o @NotNull.
      *
-     * Devuelve todos los campos que tienen errores de validación.
+     * Devuelve todos los campos que tienen errores para que el cliente
+     * sepa exactamente qué debe corregir.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> manejarValidaciones(MethodArgumentNotValidException ex) {
         Map<String, String> errores = new LinkedHashMap<>();
 
-        // Recorre todos los campos inválidos y guarda sus mensajes.
+        // Recorre todos los errores de validación encontrados.
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errores.put(error.getField(), error.getDefaultMessage())
         );
 
-        // Respuesta personalizada con los campos que deben corregirse.
+        // Respuesta personalizada con todos los campos inválidos.
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("mensaje", "Error de validación");
         response.put("estado", HttpStatus.BAD_REQUEST.value());
@@ -60,31 +65,27 @@ public class GlobalExceptionHandler {
     }
 
     /*
-     * Maneja errores cuando el JSON enviado no puede leerse correctamente.
-     * Por ejemplo:
-     * - JSON mal escrito.
-     * - Campo numérico enviado como texto inválido.
-     * - Estado de pedido incorrecto, como "ENVIAR" en vez de "ENVIADO".
+     * Maneja errores cuando el JSON enviado está mal escrito
+     * o no coincide con la estructura esperada.
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<?> manejarJsonInvalido(HttpMessageNotReadableException ex) {
         Map<String, Object> response = new LinkedHashMap<>();
 
-        response.put("mensaje", "El JSON enviado no es válido. Revisa los nombres de los campos y los valores permitidos.");
+        response.put("mensaje", "El JSON enviado no es válido. Revisa los nombres de los campos.");
         response.put("estado", HttpStatus.BAD_REQUEST.value());
 
-        // Ejemplo correcto para crear un pedido.
-        response.put("ejemploCrearPedido", Map.of(
-                "correoUsuario", "juan@test.com",
-                "productoId", 1,
-                "nombreProducto", "Teclado Mecánico",
-                "cantidad", 2,
-                "precioUnitario", 45990
+        // Ejemplo correcto para registrar un usuario.
+        response.put("ejemploRegistro", Map.of(
+                "nombre", "Juan Prueba",
+                "correo", "juan@test.com",
+                "password", "123456"
         ));
 
-        // Ejemplo correcto para actualizar el estado de un pedido.
-        response.put("ejemploActualizarEstado", Map.of(
-                "estado", "ENVIADO"
+        // Ejemplo correcto para iniciar sesión.
+        response.put("ejemploLogin", Map.of(
+                "correo", "juan@test.com",
+                "password", "123456"
         ));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -92,7 +93,7 @@ public class GlobalExceptionHandler {
 
     /*
      * Maneja cualquier otro error inesperado.
-     * Evita que el microservicio devuelva una traza técnica al cliente.
+     * Evita mostrar trazas o mensajes técnicos al cliente.
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> manejarExcepcionGeneral(Exception ex) {

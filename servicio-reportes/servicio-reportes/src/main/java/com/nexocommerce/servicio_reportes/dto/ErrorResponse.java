@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /*
- * DTO utilizado para devolver respuestas de error de forma clara.
+ * DTO utilizado para devolver respuestas de error simples.
  * Se usa cuando ocurre una excepción o una validación falla.
  */
 @Data
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ErrorResponse {
 
-    // Mensaje descriptivo del error.
+    // Mensaje descriptivo del error ocurrido.
     private String mensaje;
 
     // Código HTTP asociado al error.
