@@ -96,7 +96,11 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-
+		<!-- WebClient para comunicación REST entre microservicios -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
 		<!-- Tests -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
