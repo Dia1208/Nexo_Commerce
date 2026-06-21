@@ -1,74 +1,112 @@
-/*
- * Decompiled with CFR 0.151.
- * 
- * Could not load the following classes:
- *  io.jsonwebtoken.Jwts
- *  io.jsonwebtoken.security.Keys
- *  org.springframework.beans.factory.annotation.Value
- *  org.springframework.cloud.gateway.filter.GatewayFilterChain
- *  org.springframework.cloud.gateway.filter.GlobalFilter
- *  org.springframework.core.Ordered
- *  org.springframework.http.HttpStatus
- *  org.springframework.http.HttpStatusCode
- *  org.springframework.stereotype.Component
- *  org.springframework.web.server.ServerWebExchange
- *  reactor.core.publisher.Mono
- */
 package com.nexocommerce.servicio_gateway.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-@Component
-public class JwtAuthenticationFilter
-implements GlobalFilter,
-Ordered {
-    @Value(value="${jwt.secret}")
-    private String jwtSecret;
-    private static final List<String> RUTAS_PUBLICAS = List.of("/api/auth/login", "/api/auth/register", "/api/auth/test", "/api/gateway/health", "/actuator/health");
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
+/*
+ * Filtro global del Gateway encargado de validar el token JWT.
+ * Este filtro se ejecuta antes de redirigir la petición hacia los microservicios.
+ */
+@Component
+public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
+
+    /*
+     * Clave secreta usada para validar los tokens JWT.
+     * Debe ser la misma clave utilizada en el microservicio de autenticación.
+     */
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    /*
+     * Lista de rutas públicas que no requieren token.
+     * Estas rutas se pueden consumir sin enviar Authorization Bearer.
+     */
+    private static final List<String> RUTAS_PUBLICAS = List.of(
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/test",
+            "/api/gateway/health",
+            "/actuator/health"
+    );
+
+    /*
+     * Método principal del filtro.
+     * Verifica si la ruta es pública. Si no lo es,
+     * valida que exista un token JWT correcto.
+     */
+    @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-        System.out.println("Ruta recibida en Gateway: " + path);
+
+        // Si la ruta es pública, se permite continuar sin token.
         if (RUTAS_PUBLICAS.contains(path)) {
-            System.out.println("Ruta p\u00fablica, no requiere token");
             return chain.filter(exchange);
         }
-        String authorizationHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
-        System.out.println("Header Authorization: " + authorizationHeader);
+
+        // Obtiene el header Authorization enviado por el cliente.
+        String authorizationHeader = exchange.getRequest()
+                .getHeaders()
+                .getFirst("Authorization");
+
+        /*
+         * Si no existe el header Authorization o no empieza con Bearer,
+         * se rechaza la petición con código 401 Unauthorized.
+         */
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            System.out.println("No lleg\u00f3 token o no empieza con Bearer");
-            exchange.getResponse().setStatusCode((HttpStatusCode)HttpStatus.UNAUTHORIZED);
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
+
+        // Extrae el token quitando la palabra "Bearer ".
         String token = authorizationHeader.substring(7).trim();
+
         try {
-            SecretKey key = Keys.hmacShaKeyFor((byte[])this.jwtSecret.getBytes(StandardCharsets.UTF_8));
-            System.out.println("Validando token en Gateway...");
-            System.out.println("Largo de jwt.secret: " + this.jwtSecret.length());
-            Jwts.parser().verifyWith(key).build().parseSignedClaims((CharSequence)token);
-            System.out.println("Token v\u00e1lido. Continuando hacia microservicio.");
+            /*
+             * Crea la clave secreta a partir del texto configurado
+             * en application.properties.
+             */
+            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+
+            /*
+             * Valida la firma y estructura del token.
+             * Si el token es inválido, vencido o fue alterado,
+             * se lanzará una excepción.
+             */
+            Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token);
+
+            // Si el token es válido, permite continuar hacia el microservicio.
             return chain.filter(exchange);
-        }
-        catch (Exception ex) {
-            System.out.println("Error validando JWT en Gateway: " + ex.getMessage());
-            exchange.getResponse().setStatusCode((HttpStatusCode)HttpStatus.UNAUTHORIZED);
+
+        } catch (Exception ex) {
+            /*
+             * Si ocurre cualquier error validando el token,
+             * se responde con 401 Unauthorized.
+             */
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
     }
 
+    /*
+     * Define el orden del filtro.
+     * Un valor negativo hace que se ejecute antes que otros filtros.
+     */
+    @Override
     public int getOrder() {
         return -1;
     }
