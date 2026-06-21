@@ -8,7 +8,6 @@ import com.nexocommerce.servicio_notificaciones.entity.TipoNotificacion;
 import com.nexocommerce.servicio_notificaciones.exception.ResourceNotFoundException;
 import com.nexocommerce.servicio_notificaciones.repository.NotificacionRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,8 +18,12 @@ import java.util.List;
  * Aquí se crean, consultan y actualizan estados de notificaciones.
  */
 @Service
+
+/*
+ * Genera automáticamente el constructor para inyectar
+ * el repositorio NotificacionRepository en este servicio.
+ */
 @RequiredArgsConstructor
-@Slf4j
 public class NotificacionService {
 
     private final NotificacionRepository notificacionRepository;
@@ -70,8 +73,6 @@ public class NotificacionService {
 
         Notificacion notificacionGuardada = notificacionRepository.save(notificacion);
 
-        log.info("Notificación creada con id: {}", notificacionGuardada.getId());
-
         return mapearAResponse(notificacionGuardada);
     }
 
@@ -85,8 +86,6 @@ public class NotificacionService {
 
         Notificacion notificacionActualizada = notificacionRepository.save(notificacion);
 
-        log.info("Notificación enviada con id: {}", id);
-
         return mapearAResponse(notificacionActualizada);
     }
 
@@ -98,8 +97,6 @@ public class NotificacionService {
         notificacion.setEstado(EstadoNotificacion.FALLIDA);
 
         Notificacion notificacionActualizada = notificacionRepository.save(notificacion);
-
-        log.info("Notificación fallida con id: {}", id);
 
         return mapearAResponse(notificacionActualizada);
     }

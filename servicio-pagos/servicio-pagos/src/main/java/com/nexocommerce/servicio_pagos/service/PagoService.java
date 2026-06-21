@@ -7,7 +7,6 @@ import com.nexocommerce.servicio_pagos.entity.Pago;
 import com.nexocommerce.servicio_pagos.exception.ResourceNotFoundException;
 import com.nexocommerce.servicio_pagos.repository.PagoRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,8 +17,12 @@ import java.util.List;
  * Aquí se crean, consultan, aprueban y rechazan pagos.
  */
 @Service
+
+/*
+ * Genera automáticamente el constructor para inyectar
+ * el repositorio PagoRepository en este servicio.
+ */
 @RequiredArgsConstructor
-@Slf4j
 public class PagoService {
 
     private final PagoRepository pagoRepository;
@@ -69,8 +72,6 @@ public class PagoService {
 
         Pago pagoGuardado = pagoRepository.save(pago);
 
-        log.info("Pago creado con id: {}", pagoGuardado.getId());
-
         return mapearAResponse(pagoGuardado);
     }
 
@@ -83,8 +84,6 @@ public class PagoService {
 
         Pago pagoActualizado = pagoRepository.save(pago);
 
-        log.info("Pago aprobado con id: {}", id);
-
         return mapearAResponse(pagoActualizado);
     }
 
@@ -96,8 +95,6 @@ public class PagoService {
         pago.setEstado(EstadoPago.RECHAZADO);
 
         Pago pagoActualizado = pagoRepository.save(pago);
-
-        log.info("Pago rechazado con id: {}", id);
 
         return mapearAResponse(pagoActualizado);
     }

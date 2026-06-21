@@ -1,16 +1,16 @@
-/*
- * Decompiled with CFR 0.151.
- * 
- * Could not load the following classes:
- *  org.springframework.data.jpa.repository.JpaRepository
- */
 package com.nexocommerce.servicio_pedidos.repository;
 
 import com.nexocommerce.servicio_pedidos.entity.Pedido;
-import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PedidoRepository
-extends JpaRepository<Pedido, Long> {
-    public List<Pedido> findByCorreoUsuario(String var1);
+import java.util.List;
+
+/*
+ * Repositorio encargado de las operaciones CRUD
+ * sobre la entidad Pedido.
+ */
+public interface PedidoRepository extends JpaRepository<Pedido, Long> {
+
+    // Busca todos los pedidos realizados por un usuario según su correo.
+    List<Pedido> findByCorreoUsuario(String correoUsuario);
 }

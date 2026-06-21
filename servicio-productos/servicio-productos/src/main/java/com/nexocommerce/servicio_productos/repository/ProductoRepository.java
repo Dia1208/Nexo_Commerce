@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * sobre la entidad Producto.
  */
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
+
 }
