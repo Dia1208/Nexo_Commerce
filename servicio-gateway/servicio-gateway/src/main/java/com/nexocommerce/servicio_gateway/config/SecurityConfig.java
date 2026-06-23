@@ -7,26 +7,26 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 
 /*
  * Configuración de seguridad del Gateway.
- * Desactiva CSRF porque se trabaja con una API REST
- * y permite que el filtro JWT personalizado controle
- * el acceso a las rutas protegidas.
+ * Permite Swagger, actuator y autenticación sin token.
  */
 @Configuration
 public class SecurityConfig {
 
-    /*
-     * Configura la cadena de seguridad para Spring WebFlux.
-     * Las rutas públicas se permiten sin autenticación.
-     * Las demás rutas pasan por el filtro JWT del Gateway.
-     */
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/api/auth/**").permitAll()
-                        .pathMatchers("/api/gateway/**").permitAll()
-                        .pathMatchers("/actuator/health").permitAll()
+                        .pathMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/webjars/**",
+                                "/actuator/health",
+                                "/api/auth/**",
+                                "/api/gateway/**"
+                        ).permitAll()
                         .anyExchange().permitAll()
                 )
                 .build();

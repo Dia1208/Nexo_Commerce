@@ -10,6 +10,10 @@ spring:
       server:
         webflux:
           routes:
+            # ==========================
+            # RUTAS DE MICROSERVICIOS
+            # ==========================
+
             - id: servicio-autenticacion
               uri: http://localhost:8081
               predicates:
@@ -45,8 +49,96 @@ spring:
               predicates:
                 - Path=/api/reportes/**
 
+            # ==========================
+            # RUTAS DE SWAGGER / OPENAPI
+            # ==========================
+
+            - id: docs-autenticacion
+              uri: http://localhost:8081
+              predicates:
+                - Path=/v3/api-docs/autenticacion
+              filters:
+                - RewritePath=/v3/api-docs/autenticacion, /v3/api-docs
+
+            - id: docs-usuarios
+              uri: http://localhost:8082
+              predicates:
+                - Path=/v3/api-docs/usuarios
+              filters:
+                - RewritePath=/v3/api-docs/usuarios, /v3/api-docs
+
+            - id: docs-productos
+              uri: http://localhost:8083
+              predicates:
+                - Path=/v3/api-docs/productos
+              filters:
+                - RewritePath=/v3/api-docs/productos, /v3/api-docs
+
+            - id: docs-pedidos
+              uri: http://localhost:8084
+              predicates:
+                - Path=/v3/api-docs/pedidos
+              filters:
+                - RewritePath=/v3/api-docs/pedidos, /v3/api-docs
+
+            - id: docs-pagos
+              uri: http://localhost:8085
+              predicates:
+                - Path=/v3/api-docs/pagos
+              filters:
+                - RewritePath=/v3/api-docs/pagos, /v3/api-docs
+
+            - id: docs-notificaciones
+              uri: http://localhost:8086
+              predicates:
+                - Path=/v3/api-docs/notificaciones
+              filters:
+                - RewritePath=/v3/api-docs/notificaciones, /v3/api-docs
+
+            - id: docs-reportes
+              uri: http://localhost:8087
+              predicates:
+                - Path=/v3/api-docs/reportes
+              filters:
+                - RewritePath=/v3/api-docs/reportes, /v3/api-docs
+
+# ==========================
+# CONFIGURACIÓN DE SWAGGER UI
+# ==========================
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    urls:
+      - name: Autenticacion
+        url: /v3/api-docs/autenticacion
+      - name: Usuarios
+        url: /v3/api-docs/usuarios
+      - name: Productos
+        url: /v3/api-docs/productos
+      - name: Pedidos
+        url: /v3/api-docs/pedidos
+      - name: Pagos
+        url: /v3/api-docs/pagos
+      - name: Notificaciones
+        url: /v3/api-docs/notificaciones
+      - name: Reportes
+        url: /v3/api-docs/reportes
+
+# ==========================
+# JWT
+# ==========================
+
 jwt:
   secret: NexoCommerceSecretKeyParaJWTDebeTenerMinimo32Caracteres2026
+
+# ==========================
+# ACTUATOR
+# ==========================
 
 management:
   endpoints:
