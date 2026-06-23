@@ -2,35 +2,39 @@
 
 ## Descripción del proyecto
 
-NexoCommerce es un sistema de comercio electrónico desarrollado con arquitectura de microservicios usando Spring Boot.
+NexoCommerce es una plataforma de comercio electrónico dedicada a la venta y gestión de productos en línea. El sistema permite administrar usuarios, productos, pedidos, pagos, notificaciones y reportes de forma segura y organizada.
 
-El proyecto permite gestionar autenticación, usuarios, productos, pedidos, pagos, notificaciones y reportes. La comunicación principal se realiza a través de un API Gateway, que funciona como punto único de entrada para las peticiones del cliente.
+El proyecto fue desarrollado con arquitectura de microservicios utilizando Spring Boot. Cada funcionalidad principal está separada en un servicio independiente, lo que permite mayor escalabilidad, mantenimiento y organización del sistema.
 
-El sistema está diseñado separando responsabilidades por microservicio, permitiendo que cada módulo tenga su propia lógica, su propia base de datos y sus propios endpoints.
+La comunicación principal se realiza a través de un API Gateway, que funciona como punto único de entrada para las peticiones del cliente.
 
 ---
 
 ## Integrantes
 
-- Diego Gonzalez Ballesteros
+* Diego Gonzalez Ballesteros
 
 ---
 
 ## Tecnologías utilizadas
 
-- Java 21
-- Spring Boot
-- Spring Web
-- Spring Data JPA
-- Spring Security
-- Spring Cloud Gateway
-- MySQL
-- Lombok
-- Swagger / OpenAPI
-- Maven
-- Git / GitHub
-- Postman
-- IntelliJ IDEA
+* Java 21
+* Spring Boot
+* Spring Web
+* Spring WebFlux
+* Spring Data JPA
+* Spring Security
+* Spring Cloud Gateway
+* JWT
+* MySQL
+* Lombok
+* Swagger / OpenAPI
+* Maven
+* Git / GitHub
+* Postman
+* IntelliJ IDEA
+* JUnit 5
+* Mockito
 
 ---
 
@@ -38,16 +42,16 @@ El sistema está diseñado separando responsabilidades por microservicio, permit
 
 El sistema está dividido en los siguientes microservicios:
 
-| Microservicio | Puerto | Descripción |
-|---|---:|---|
-| servicio-gateway | 8080 | Punto único de entrada al sistema |
-| servicio-autenticacion | 8081 | Registro, login y generación de JWT |
-| servicio-usuarios | 8082 | Gestión de usuarios |
-| servicio-productos | 8083 | Gestión de productos |
-| servicio-pedidos | 8084 | Gestión de pedidos |
-| servicio-pagos | 8085 | Gestión de pagos |
-| servicio-notificaciones | 8086 | Gestión de notificaciones |
-| servicio-reportes | 8087 | Gestión de reportes |
+| Microservicio           | Puerto | Descripción                         |
+| ----------------------- | -----: | ----------------------------------- |
+| servicio-gateway        |   8080 | Punto único de entrada al sistema   |
+| servicio-autenticacion  |   8081 | Registro, login y generación de JWT |
+| servicio-usuarios       |   8082 | Gestión de usuarios                 |
+| servicio-productos      |   8083 | Gestión de productos                |
+| servicio-pedidos        |   8084 | Gestión de pedidos                  |
+| servicio-pagos          |   8085 | Gestión de pagos                    |
+| servicio-notificaciones |   8086 | Gestión de notificaciones           |
+| servicio-reportes       |   8087 | Gestión de reportes                 |
 
 ---
 
@@ -67,48 +71,38 @@ CREATE DATABASE IF NOT EXISTS nexocommerce_reportes_db;
 
 Relación entre microservicio y base de datos:
 
-| Microservicio | Base de datos |
-|---|---|
-| servicio-autenticacion | nexocommerce_autenticacion_db |
-| servicio-usuarios | nexocommerce_usuarios_db |
-| servicio-productos | nexocommerce_productos_db |
-| servicio-pedidos | nexocommerce_pedidos_db |
-| servicio-pagos | nexocommerce_pagos_db |
+| Microservicio           | Base de datos                  |
+| ----------------------- | ------------------------------ |
+| servicio-autenticacion  | nexocommerce_autenticacion_db  |
+| servicio-usuarios       | nexocommerce_usuarios_db       |
+| servicio-productos      | nexocommerce_productos_db      |
+| servicio-pedidos        | nexocommerce_pedidos_db        |
+| servicio-pagos          | nexocommerce_pagos_db          |
 | servicio-notificaciones | nexocommerce_notificaciones_db |
-| servicio-reportes | nexocommerce_reportes_db |
+| servicio-reportes       | nexocommerce_reportes_db       |
 
 ---
 
 ## Configuración general
 
-Cada microservicio contiene su propio archivo:
+Cada microservicio contiene su propia configuración en:
 
 ```txt
 src/main/resources/application.properties
 ```
 
-Ejemplo de configuración:
+En el caso del `servicio-gateway`, la configuración principal se encuentra en:
 
-```properties
-server.port=8082
-
-spring.application.name=servicio-usuarios
-
-spring.datasource.url=jdbc:mysql://localhost:3306/nexocommerce_usuarios_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
-spring.datasource.username=root
-spring.datasource.password=
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-spring.jpa.open-in-view=false
-
-springdoc.swagger-ui.path=/swagger-ui.html
-
-management.endpoints.web.exposure.include=health
-management.endpoint.health.show-details=always
+```txt
+src/main/resources/application.yml
 ```
+
+El Gateway utiliza `application.yml` para definir:
+
+* Rutas hacia los microservicios.
+* Rutas de Swagger centralizado.
+* Configuración JWT.
+* Configuración de Actuator.
 
 ---
 
@@ -118,15 +112,21 @@ El microservicio `servicio-gateway` se ejecuta en el puerto `8080` y redireccion
 
 Rutas configuradas:
 
-| Ruta Gateway | Microservicio destino |
-|---|---|
-| `/api/auth/**` | servicio-autenticacion |
-| `/api/usuarios/**` | servicio-usuarios |
-| `/api/productos/**` | servicio-productos |
-| `/api/pedidos/**` | servicio-pedidos |
-| `/api/pagos/**` | servicio-pagos |
+| Ruta Gateway             | Microservicio destino   |
+| ------------------------ | ----------------------- |
+| `/api/auth/**`           | servicio-autenticacion  |
+| `/api/usuarios/**`       | servicio-usuarios       |
+| `/api/productos/**`      | servicio-productos      |
+| `/api/pedidos/**`        | servicio-pedidos        |
+| `/api/pagos/**`          | servicio-pagos          |
 | `/api/notificaciones/**` | servicio-notificaciones |
-| `/api/reportes/**` | servicio-reportes |
+| `/api/reportes/**`       | servicio-reportes       |
+
+El Gateway permite consumir los servicios desde una sola entrada:
+
+```txt
+http://localhost:8080
+```
 
 ---
 
@@ -150,12 +150,59 @@ Authorization: Bearer TOKEN_GENERADO
 Rutas públicas:
 
 ```txt
-/api/auth/register
-/api/auth/login
-/api/auth/test
-/api/gateway/health
+/api/auth/**
+/api/gateway/**
 /actuator/health
+/swagger-ui/**
+/swagger-ui.html
+/v3/api-docs/**
 ```
+
+---
+
+## Swagger centralizado
+
+El proyecto cuenta con documentación Swagger/OpenAPI centralizada desde el API Gateway.
+
+URL principal:
+
+```txt
+http://localhost:8080/swagger-ui/index.html
+```
+
+Desde esta pantalla se puede seleccionar la documentación de:
+
+* Autenticación
+* Usuarios
+* Productos
+* Pedidos
+* Pagos
+* Notificaciones
+* Reportes
+
+También se pueden consultar directamente los JSON OpenAPI mediante el Gateway:
+
+| Microservicio  | URL Gateway                                        |
+| -------------- | -------------------------------------------------- |
+| Autenticación  | `http://localhost:8080/v3/api-docs/autenticacion`  |
+| Usuarios       | `http://localhost:8080/v3/api-docs/usuarios`       |
+| Productos      | `http://localhost:8080/v3/api-docs/productos`      |
+| Pedidos        | `http://localhost:8080/v3/api-docs/pedidos`        |
+| Pagos          | `http://localhost:8080/v3/api-docs/pagos`          |
+| Notificaciones | `http://localhost:8080/v3/api-docs/notificaciones` |
+| Reportes       | `http://localhost:8080/v3/api-docs/reportes`       |
+
+Cada microservicio también conserva su propio Swagger individual:
+
+| Microservicio  | URL                                           |
+| -------------- | --------------------------------------------- |
+| Autenticación  | `http://localhost:8081/swagger-ui/index.html` |
+| Usuarios       | `http://localhost:8082/swagger-ui/index.html` |
+| Productos      | `http://localhost:8083/swagger-ui/index.html` |
+| Pedidos        | `http://localhost:8084/swagger-ui/index.html` |
+| Pagos          | `http://localhost:8085/swagger-ui/index.html` |
+| Notificaciones | `http://localhost:8086/swagger-ui/index.html` |
+| Reportes       | `http://localhost:8087/swagger-ui/index.html` |
 
 ---
 
@@ -176,21 +223,19 @@ Para ejecutar el sistema completo, iniciar los microservicios en este orden:
 
 El Gateway se debe ejecutar al final porque es el punto de entrada que redirecciona hacia los demás microservicios.
 
----
+Para verificar que el Gateway está activo:
 
-## Documentación Swagger
+```txt
+http://localhost:8080/actuator/health
+```
 
-Cada microservicio cuenta con Swagger UI para probar sus endpoints.
+Respuesta esperada:
 
-| Microservicio | URL |
-|---|---|
-| Autenticación | `http://localhost:8081/swagger-ui.html` |
-| Usuarios | `http://localhost:8082/swagger-ui.html` |
-| Productos | `http://localhost:8083/swagger-ui.html` |
-| Pedidos | `http://localhost:8084/swagger-ui.html` |
-| Pagos | `http://localhost:8085/swagger-ui.html` |
-| Notificaciones | `http://localhost:8086/swagger-ui.html` |
-| Reportes | `http://localhost:8087/swagger-ui.html` |
+```json
+{
+  "status": "UP"
+}
+```
 
 ---
 
@@ -644,13 +689,7 @@ Authorization: Bearer TOKEN_GENERADO
 
 El sistema cuenta con manejo global de excepciones en los microservicios.
 
-Cuando se envía un JSON vacío, por ejemplo:
-
-```json
-{}
-```
-
-El sistema responde con los campos requeridos:
+Cuando se envía un JSON vacío, el sistema responde con los campos requeridos:
 
 ```json
 {
@@ -700,14 +739,14 @@ GatewayControllerTest
 
 Estas pruebas validan operaciones como:
 
-- Registro y login.
-- Creación y consulta de usuarios.
-- CRUD de productos.
-- Creación y actualización de pedidos.
-- Creación, aprobación y rechazo de pagos.
-- Creación y actualización de notificaciones.
-- Creación, consulta y eliminación de reportes.
-- Verificación básica del Gateway.
+* Registro y login.
+* Creación y consulta de usuarios.
+* CRUD de productos.
+* Creación y actualización de pedidos.
+* Creación, aprobación y rechazo de pagos.
+* Creación y actualización de notificaciones.
+* Creación, consulta y eliminación de reportes.
+* Verificación básica del Gateway.
 
 ---
 
@@ -717,7 +756,7 @@ Estas pruebas validan operaciones como:
 git status
 git add .
 git commit -m "mensaje del commit"
-git push
+git push origin main
 ```
 
 ---
@@ -726,15 +765,16 @@ git push
 
 El sistema queda organizado como una arquitectura de microservicios funcional, con:
 
-- Separación por responsabilidades.
-- Base de datos independiente por microservicio.
-- Gateway como punto único de entrada.
-- Autenticación mediante JWT.
-- Documentación Swagger.
-- Validaciones de datos.
-- Manejo de errores personalizado.
-- Pruebas unitarias.
-- Control de versiones con Git y GitHub.
+* Separación por responsabilidades.
+* Base de datos independiente por microservicio.
+* Gateway como punto único de entrada.
+* Autenticación mediante JWT.
+* Documentación Swagger individual por microservicio.
+* Documentación Swagger centralizada desde el API Gateway.
+* Validaciones de datos.
+* Manejo de errores personalizado.
+* Pruebas unitarias.
+* Control de versiones con Git y GitHub.
 
 ---
 
