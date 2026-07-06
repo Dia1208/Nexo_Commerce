@@ -1,4 +1,4 @@
-package com.nexocommerce.servicio_pedidos.client;
+package com.nexocommerce.servicio_pedidos.cliente;
 
 import com.nexocommerce.servicio_pedidos.dto.ProductoResponse;
 import org.springframework.stereotype.Component;
@@ -6,8 +6,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 /*
  * Cliente REST encargado de comunicarse con el microservicio de productos.
- * Este cliente permite que servicio-pedidos consulte información real
- * del producto antes de crear un pedido.
+ * Permite que servicio-pedidos consulte información real de un producto
+ * antes de crear un pedido.
  */
 @Component
 public class ProductoClient {
@@ -22,10 +22,8 @@ public class ProductoClient {
     }
 
     /*
-     * Consulta un producto por ID desde el microservicio de productos.
-     *
-     * Endpoint consumido:
-     * GET http://localhost:8083/api/productos/{id}
+     * Consulta un producto por ID desde servicio-productos.
+     * Endpoint: GET http://localhost:8083/api/productos/{id}
      */
     public ProductoResponse obtenerProductoPorId(Long productoId) {
         return webClientBuilder.build()

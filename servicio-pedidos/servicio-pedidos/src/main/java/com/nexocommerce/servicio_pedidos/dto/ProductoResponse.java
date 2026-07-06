@@ -3,11 +3,8 @@ package com.nexocommerce.servicio_pedidos.dto;
 import java.math.BigDecimal;
 
 /*
- * DTO utilizado para recibir la información de un producto
+ * DTO utilizado para recibir información del producto
  * desde el microservicio de productos.
- *
- * Este DTO permite que servicio-pedidos pueda obtener el nombre,
- * precio y stock del producto antes de crear el pedido.
  */
 public class ProductoResponse {
 

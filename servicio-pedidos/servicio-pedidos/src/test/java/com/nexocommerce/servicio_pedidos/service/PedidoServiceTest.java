@@ -1,6 +1,6 @@
 package com.nexocommerce.servicio_pedidos.service;
 
-import com.nexocommerce.servicio_pedidos.client.ProductoClient;
+import com.nexocommerce.servicio_pedidos.cliente.ProductoClient;
 import com.nexocommerce.servicio_pedidos.dto.ActualizarEstadoPedidoRequest;
 import com.nexocommerce.servicio_pedidos.dto.PedidoRequest;
 import com.nexocommerce.servicio_pedidos.dto.PedidoResponse;

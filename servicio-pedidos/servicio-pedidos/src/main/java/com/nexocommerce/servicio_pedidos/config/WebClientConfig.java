@@ -5,15 +5,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /*
- * Configuración de WebClient.
- * Permite crear clientes HTTP para consumir otros microservicios.
+ * Configuración de WebClient para permitir comunicación REST entre microservicios.
  */
 @Configuration
 public class WebClientConfig {
 
     /*
-     * Bean reutilizable de WebClient.Builder.
-     * Se usa para construir clientes REST dentro del proyecto.
+     * Bean utilizado para construir clientes HTTP.
      */
     @Bean
     public WebClient.Builder webClientBuilder() {

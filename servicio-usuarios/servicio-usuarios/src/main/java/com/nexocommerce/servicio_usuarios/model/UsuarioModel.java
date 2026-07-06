@@ -3,6 +3,7 @@ package com.nexocommerce.servicio_usuarios.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /*
@@ -39,7 +40,9 @@ public class UsuarioModel {
     // Dirección del usuario.
     private String direccion;
 
-    // Rol del usuario dentro del sistema, por ejemplo CLIENTE o ADMIN.
-    @NotBlank(message = "El rol del usuario es obligatorio")
-    private String rol;
+    // Rol del usuario dentro del sistema. Solo permite CLIENTE o ADMIN.
+    @NotNull(message = "El rol del usuario es obligatorio")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RolUsuario rol;
 }

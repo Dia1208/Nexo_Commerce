@@ -1,5 +1,6 @@
 package com.nexocommerce.servicio_usuarios.service;
 
+import com.nexocommerce.servicio_usuarios.model.RolUsuario;
 import com.nexocommerce.servicio_usuarios.model.UsuarioModel;
 import com.nexocommerce.servicio_usuarios.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +46,7 @@ class UsuarioServiceTest {
                 .correo("juan@test.com")
                 .telefono("123456789")
                 .direccion("Calle 123")
-                .rol("CLIENTE")
+                .rol(RolUsuario.CLIENTE)
                 .build();
     }
 
@@ -62,6 +63,7 @@ class UsuarioServiceTest {
         assertEquals(1, resultado.size());
         assertEquals("Juan", resultado.get(0).getNombre());
         assertEquals("juan@test.com", resultado.get(0).getCorreo());
+        assertEquals(RolUsuario.CLIENTE, resultado.get(0).getRol());
 
         verify(usuarioRepository, times(1)).findAll();
     }
@@ -79,6 +81,7 @@ class UsuarioServiceTest {
         assertEquals(1L, resultado.getId());
         assertEquals("Juan", resultado.getNombre());
         assertEquals("juan@test.com", resultado.getCorreo());
+        assertEquals(RolUsuario.CLIENTE, resultado.getRol());
 
         verify(usuarioRepository, times(1)).findById(1L);
     }
@@ -109,6 +112,7 @@ class UsuarioServiceTest {
         assertNotNull(resultado);
         assertEquals("Juan", resultado.getNombre());
         assertEquals("juan@test.com", resultado.getCorreo());
+        assertEquals(RolUsuario.CLIENTE, resultado.getRol());
 
         verify(usuarioRepository, times(1)).findByCorreo("juan@test.com");
     }
@@ -140,6 +144,7 @@ class UsuarioServiceTest {
         assertNotNull(resultado);
         assertEquals("Juan", resultado.getNombre());
         assertEquals("juan@test.com", resultado.getCorreo());
+        assertEquals(RolUsuario.CLIENTE, resultado.getRol());
 
         verify(usuarioRepository, times(1)).existsByCorreo("juan@test.com");
         verify(usuarioRepository, times(1)).save(usuario);
@@ -168,7 +173,7 @@ class UsuarioServiceTest {
                 .correo("juanactualizado@test.com")
                 .telefono("987654321")
                 .direccion("Nueva dirección")
-                .rol("CLIENTE")
+                .rol(RolUsuario.CLIENTE)
                 .build();
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
@@ -184,7 +189,7 @@ class UsuarioServiceTest {
         assertEquals("juanactualizado@test.com", resultado.getCorreo());
         assertEquals("987654321", resultado.getTelefono());
         assertEquals("Nueva dirección", resultado.getDireccion());
-        assertEquals("CLIENTE", resultado.getRol());
+        assertEquals(RolUsuario.CLIENTE, resultado.getRol());
 
         verify(usuarioRepository, times(1)).findById(1L);
         verify(usuarioRepository, times(1)).existsByCorreo("juanactualizado@test.com");
@@ -199,7 +204,7 @@ class UsuarioServiceTest {
                 .correo("juan@test.com")
                 .telefono("987654321")
                 .direccion("Nueva dirección")
-                .rol("CLIENTE")
+                .rol(RolUsuario.CLIENTE)
                 .build();
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
@@ -214,7 +219,7 @@ class UsuarioServiceTest {
         assertEquals("juan@test.com", resultado.getCorreo());
         assertEquals("987654321", resultado.getTelefono());
         assertEquals("Nueva dirección", resultado.getDireccion());
-        assertEquals("CLIENTE", resultado.getRol());
+        assertEquals(RolUsuario.CLIENTE, resultado.getRol());
 
         verify(usuarioRepository, times(1)).findById(1L);
         verify(usuarioRepository, never()).existsByCorreo(anyString());
@@ -229,7 +234,7 @@ class UsuarioServiceTest {
                 .correo("otro@test.com")
                 .telefono("987654321")
                 .direccion("Nueva dirección")
-                .rol("CLIENTE")
+                .rol(RolUsuario.CLIENTE)
                 .build();
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
@@ -272,5 +277,25 @@ class UsuarioServiceTest {
 
         verify(usuarioRepository, times(1)).findById(99L);
         verify(usuarioRepository, never()).delete(any(UsuarioModel.class));
+    }
+    @Test
+    void prueba(){
+        UsuarioModel usuarioModel = new UsuarioModel();
+        usuarioModel.setNombre("Juan");
+        usuarioModel.setCorreo("ALE@DUOC.CL");
+        assertEquals("Juan" , usuarioModel.getNombre());
+        assertEquals("ALE@DUOC.CL", usuarioModel.getCorreo());
+        assertNotEquals("ALE@DUOCuc.CL", usuarioModel.getCorreo());;
+        System.out.println("Prueba unitaria creada");
+    }
+    @Test
+    void prueba2(){
+        UsuarioModel usuarioModel = new UsuarioModel();
+        usuarioModel.setNombre("Juan");
+        usuarioModel.setRol(RolUsuario.CLIENTE);
+        assertEquals("Juan" , usuarioModel.getNombre());
+        assertEquals("Juan" , usuarioModel.getRol());
+        assertNotEquals("cristofer", usuarioModel.getCorreo());
+        System.out.println("Prueba unitaria creada");
     }
 }

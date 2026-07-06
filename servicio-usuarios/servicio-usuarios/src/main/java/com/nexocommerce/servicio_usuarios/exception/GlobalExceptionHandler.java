@@ -21,10 +21,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /*
-     * Maneja errores de tipo RuntimeException.
-     * Actualmente se usa para casos como "Usuario no encontrado".
-     */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> manejarRuntimeException(RuntimeException ex) {
         ErrorResponse error = new ErrorResponse(
@@ -35,23 +31,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    /*
-     * Maneja errores de validación.
-     * Se ejecuta cuando UsuarioModel no cumple con anotaciones como:
-     * @NotBlank o @Email.
-     *
-     * Para que funcione, el controller debe tener @Valid en el @RequestBody.
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> manejarValidaciones(MethodArgumentNotValidException ex) {
         Map<String, String> errores = new LinkedHashMap<>();
 
-        // Recorre todos los campos inválidos y guarda sus mensajes.
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errores.put(error.getField(), error.getDefaultMessage())
         );
 
-        // Respuesta personalizada con todos los campos que deben corregirse.
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("mensaje", "Error de validación");
         response.put("estado", HttpStatus.BAD_REQUEST.value());
@@ -60,10 +47,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    /*
-     * Maneja errores de integridad en la base de datos.
-     * Por ejemplo, cuando se intenta registrar un correo que ya existe.
-     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<?> manejarDuplicados(DataIntegrityViolationException ex) {
         ErrorResponse error = new ErrorResponse(
@@ -74,21 +57,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    /*
-     * Maneja errores cuando el JSON está mal escrito.
-     * Por ejemplo:
-     * - Falta una llave.
-     * - Hay una coma mal puesta.
-     * - Se envía un tipo de dato incorrecto.
-     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<?> manejarJsonInvalido(HttpMessageNotReadableException ex) {
         Map<String, Object> response = new LinkedHashMap<>();
 
-        response.put("mensaje", "El JSON enviado no es válido. Revisa los nombres de los campos.");
+        response.put("mensaje", "El JSON enviado no es válido. Revisa los nombres de los campos y los valores permitidos.");
         response.put("estado", HttpStatus.BAD_REQUEST.value());
+        response.put("rolesPermitidos", new String[]{"CLIENTE", "ADMIN"});
 
-        // Ejemplo de JSON correcto para crear o actualizar un usuario.
         response.put("ejemploCorrecto", Map.of(
                 "nombre", "Juan Prueba",
                 "correo", "juan@test.com",
@@ -100,10 +76,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    /*
-     * Maneja cualquier otro error inesperado.
-     * Evita devolver información técnica interna al cliente.
-     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> manejarExcepcionGeneral(Exception ex) {
         ErrorResponse error = new ErrorResponse(
