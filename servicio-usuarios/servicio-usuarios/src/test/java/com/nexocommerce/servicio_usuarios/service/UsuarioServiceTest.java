@@ -278,24 +278,30 @@ class UsuarioServiceTest {
         verify(usuarioRepository, times(1)).findById(99L);
         verify(usuarioRepository, never()).delete(any(UsuarioModel.class));
     }
+
     @Test
-    void prueba(){
+    void crearUsuarioModelConNombreYCorreoCorrectamente() {
         UsuarioModel usuarioModel = new UsuarioModel();
         usuarioModel.setNombre("Juan");
         usuarioModel.setCorreo("ALE@DUOC.CL");
-        assertEquals("Juan" , usuarioModel.getNombre());
+
+        assertEquals("Juan", usuarioModel.getNombre());
         assertEquals("ALE@DUOC.CL", usuarioModel.getCorreo());
-        assertNotEquals("ALE@DUOCuc.CL", usuarioModel.getCorreo());;
+        assertNotEquals("ALE@DUOCuc.CL", usuarioModel.getCorreo());
+
         System.out.println("Prueba unitaria creada");
     }
+
     @Test
-    void prueba2(){
+    void crearUsuarioModelConRolCorrectamente() {
         UsuarioModel usuarioModel = new UsuarioModel();
         usuarioModel.setNombre("Juan");
         usuarioModel.setRol(RolUsuario.CLIENTE);
-        assertEquals("Juan" , usuarioModel.getNombre());
-        assertEquals("Juan" , usuarioModel.getRol());
-        assertNotEquals("cristofer", usuarioModel.getCorreo());
+
+        assertEquals("Juan", usuarioModel.getNombre());
+        assertEquals(RolUsuario.CLIENTE, usuarioModel.getRol());
+        assertNotEquals(RolUsuario.ADMIN, usuarioModel.getRol());
+
         System.out.println("Prueba unitaria creada");
     }
 }

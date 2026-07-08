@@ -15,42 +15,42 @@ spring:
             # ==========================
 
             - id: servicio-autenticacion
-              uri: http://localhost:8081
+              uri: ${SERVICIO_AUTENTICACION_URL:http://localhost:8081}
               predicates:
                 - Path=/api/auth/**
 
             - id: servicio-usuarios
-              uri: http://localhost:8082
+              uri: ${SERVICIO_USUARIOS_URL:http://localhost:8082}
               predicates:
                 - Path=/api/usuarios/**
 
             - id: servicio-productos
-              uri: http://localhost:8083
+              uri: ${SERVICIO_PRODUCTOS_URL:http://localhost:8083}
               predicates:
                 - Path=/api/productos/**
 
             - id: servicio-pedidos
-              uri: http://localhost:8084
+              uri: ${SERVICIO_PEDIDOS_URL:http://localhost:8084}
               predicates:
                 - Path=/api/pedidos/**
 
             - id: servicio-pagos
-              uri: http://localhost:8085
+              uri: ${SERVICIO_PAGOS_URL:http://localhost:8085}
               predicates:
                 - Path=/api/pagos/**
 
             - id: servicio-notificaciones
-              uri: http://localhost:8086
+              uri: ${SERVICIO_NOTIFICACIONES_URL:http://localhost:8086}
               predicates:
                 - Path=/api/notificaciones/**
 
             - id: servicio-reportes
-              uri: http://localhost:8087
+              uri: ${SERVICIO_REPORTES_URL:http://localhost:8087}
               predicates:
                 - Path=/api/reportes/**
 
             - id: servicio-checkout
-              uri: http://localhost:8088
+              uri: ${SERVICIO_CHECKOUT_URL:http://localhost:8088}
               predicates:
                 - Path=/api/checkout/**
 
@@ -59,56 +59,56 @@ spring:
             # ==========================
 
             - id: docs-autenticacion
-              uri: http://localhost:8081
+              uri: ${SERVICIO_AUTENTICACION_URL:http://localhost:8081}
               predicates:
                 - Path=/v3/api-docs/autenticacion
               filters:
                 - RewritePath=/v3/api-docs/autenticacion, /v3/api-docs
 
             - id: docs-usuarios
-              uri: http://localhost:8082
+              uri: ${SERVICIO_USUARIOS_URL:http://localhost:8082}
               predicates:
                 - Path=/v3/api-docs/usuarios
               filters:
                 - RewritePath=/v3/api-docs/usuarios, /v3/api-docs
 
             - id: docs-productos
-              uri: http://localhost:8083
+              uri: ${SERVICIO_PRODUCTOS_URL:http://localhost:8083}
               predicates:
                 - Path=/v3/api-docs/productos
               filters:
                 - RewritePath=/v3/api-docs/productos, /v3/api-docs
 
             - id: docs-pedidos
-              uri: http://localhost:8084
+              uri: ${SERVICIO_PEDIDOS_URL:http://localhost:8084}
               predicates:
                 - Path=/v3/api-docs/pedidos
               filters:
                 - RewritePath=/v3/api-docs/pedidos, /v3/api-docs
 
             - id: docs-pagos
-              uri: http://localhost:8085
+              uri: ${SERVICIO_PAGOS_URL:http://localhost:8085}
               predicates:
                 - Path=/v3/api-docs/pagos
               filters:
                 - RewritePath=/v3/api-docs/pagos, /v3/api-docs
 
             - id: docs-notificaciones
-              uri: http://localhost:8086
+              uri: ${SERVICIO_NOTIFICACIONES_URL:http://localhost:8086}
               predicates:
                 - Path=/v3/api-docs/notificaciones
               filters:
                 - RewritePath=/v3/api-docs/notificaciones, /v3/api-docs
 
             - id: docs-reportes
-              uri: http://localhost:8087
+              uri: ${SERVICIO_REPORTES_URL:http://localhost:8087}
               predicates:
                 - Path=/v3/api-docs/reportes
               filters:
                 - RewritePath=/v3/api-docs/reportes, /v3/api-docs
 
             - id: docs-checkout
-              uri: http://localhost:8088
+              uri: ${SERVICIO_CHECKOUT_URL:http://localhost:8088}
               predicates:
                 - Path=/v3/api-docs/checkout
               filters:

@@ -1,0 +1,126 @@
+services:
+  servicio-gateway:
+    build:
+      context: ./servicio-gateway/servicio-gateway
+    image: nexocommerce-gateway
+    container_name: servicio-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SERVICIO_AUTENTICACION_URL: http://servicio-autenticacion:8081
+      SERVICIO_USUARIOS_URL: http://servicio-usuarios:8082
+      SERVICIO_PRODUCTOS_URL: http://servicio-productos:8083
+      SERVICIO_PEDIDOS_URL: http://servicio-pedidos:8084
+      SERVICIO_PAGOS_URL: http://servicio-pagos:8085
+      SERVICIO_NOTIFICACIONES_URL: http://servicio-notificaciones:8086
+      SERVICIO_REPORTES_URL: http://servicio-reportes:8087
+      SERVICIO_CHECKOUT_URL: http://servicio-checkout:8088
+    depends_on:
+      - servicio-autenticacion
+      - servicio-usuarios
+      - servicio-productos
+      - servicio-pedidos
+      - servicio-pagos
+      - servicio-notificaciones
+      - servicio-reportes
+      - servicio-checkout
+
+  servicio-autenticacion:
+    build:
+      context: ./servicio-autenticacion/servicio-autenticacion
+    image: nexocommerce-autenticacion
+    container_name: servicio-autenticacion
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/nexocommerce_autenticacion
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+
+  servicio-usuarios:
+    build:
+      context: ./servicio-usuarios/servicio-usuarios
+    image: nexocommerce-usuarios
+    container_name: servicio-usuarios
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/nexocommerce_usuarios
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+
+  servicio-productos:
+    build:
+      context: ./servicio-productos/servicio-productos
+    image: nexocommerce-productos
+    container_name: servicio-productos
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/nexocommerce_productos
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+
+  servicio-pedidos:
+    build:
+      context: ./servicio-pedidos/servicio-pedidos
+    image: nexocommerce-pedidos
+    container_name: servicio-pedidos
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/nexocommerce_pedidos
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+    depends_on:
+      - servicio-productos
+
+  servicio-pagos:
+    build:
+      context: ./servicio-pagos/servicio-pagos
+    image: nexocommerce-pagos
+    container_name: servicio-pagos
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/nexocommerce_pagos
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+
+  servicio-notificaciones:
+    build:
+      context: ./servicio-notificaciones/servicio-notificaciones
+    image: nexocommerce-notificaciones
+    container_name: servicio-notificaciones
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/nexocommerce_notificaciones
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+
+  servicio-reportes:
+    build:
+      context: ./servicio-reportes/servicio-reportes
+    image: nexocommerce-reportes
+    container_name: servicio-reportes
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/nexocommerce_reportes
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+
+  servicio-checkout:
+    build:
+      context: ./servicio-checkout
+    image: nexocommerce-checkout
+    container_name: servicio-checkout
+    ports:
+      - "8088:8088"
+    environment:
+      SERVICIOS_PRODUCTOS_URL: http://servicio-productos:8083
+      SERVICIOS_PEDIDOS_URL: http://servicio-pedidos:8084
+    depends_on:
+      - servicio-productos
+      - servicio-pedidos
