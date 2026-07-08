@@ -1,38 +1,37 @@
 package com.nexocommerce.servicio_pedidos.service;
 
-import com.nexocommerce.servicio_pedidos.cliente.ProductoClient;
 import com.nexocommerce.servicio_pedidos.dto.ActualizarEstadoPedidoRequest;
 import com.nexocommerce.servicio_pedidos.dto.PedidoRequest;
 import com.nexocommerce.servicio_pedidos.dto.PedidoResponse;
-import com.nexocommerce.servicio_pedidos.dto.ProductoResponse;
 import com.nexocommerce.servicio_pedidos.entity.EstadoPedido;
 import com.nexocommerce.servicio_pedidos.entity.Pedido;
 import com.nexocommerce.servicio_pedidos.exception.ResourceNotFoundException;
 import com.nexocommerce.servicio_pedidos.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 /*
  * Servicio encargado de la lógica de negocio relacionada con los pedidos.
- * Además, se comunica con el microservicio de productos mediante WebClient
- * para obtener información real del producto antes de crear el pedido.
+ *
+ * Este microservicio ya no consulta directamente al microservicio de productos.
+ * La comunicación con productos y el cálculo del total ahora lo realiza
+ * servicio-checkout, que actúa como microservicio orquestador.
+ *
+ * servicio-pedidos queda encargado de registrar, listar, buscar,
+ * actualizar estado, cancelar y eliminar pedidos.
  */
 @Service
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
-    private final ProductoClient productoClient;
 
     /*
-     * Constructor utilizado para inyectar el repositorio de pedidos
-     * y el cliente REST de productos.
+     * Constructor utilizado para inyectar el repositorio de pedidos.
      */
-    public PedidoService(PedidoRepository pedidoRepository, ProductoClient productoClient) {
+    public PedidoService(PedidoRepository pedidoRepository) {
         this.pedidoRepository = pedidoRepository;
-        this.productoClient = productoClient;
     }
 
     /*
@@ -64,26 +63,20 @@ public class PedidoService {
     }
 
     /*
-     * Crea un pedido consultando primero los datos reales
-     * del producto desde servicio-productos usando WebClient.
+     * Crea un pedido con los datos ya calculados por servicio-checkout.
+     *
+     * servicio-checkout consulta productos, valida stock y calcula el total.
+     * servicio-pedidos solo guarda el pedido y asigna el estado inicial PENDIENTE.
      */
     public PedidoResponse crear(PedidoRequest request) {
-        ProductoResponse producto = productoClient.obtenerProductoPorId(request.getProductoId());
-
-        if (producto == null) {
-            throw new RuntimeException("No se pudo obtener el producto con id: " + request.getProductoId());
-        }
-
-        BigDecimal total = producto.getPrecio()
-                .multiply(BigDecimal.valueOf(request.getCantidad()));
 
         Pedido pedido = Pedido.builder()
                 .correoUsuario(request.getCorreoUsuario())
-                .productoId(producto.getId())
-                .nombreProducto(producto.getNombre())
+                .productoId(request.getProductoId())
+                .nombreProducto(request.getNombreProducto())
                 .cantidad(request.getCantidad())
-                .precioUnitario(producto.getPrecio())
-                .total(total)
+                .precioUnitario(request.getPrecioUnitario())
+                .total(request.getTotal())
                 .estado(EstadoPedido.PENDIENTE)
                 .fechaCreacion(LocalDateTime.now())
                 .build();

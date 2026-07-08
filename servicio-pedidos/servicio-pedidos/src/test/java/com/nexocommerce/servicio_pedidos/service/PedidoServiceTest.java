@@ -1,10 +1,8 @@
 package com.nexocommerce.servicio_pedidos.service;
 
-import com.nexocommerce.servicio_pedidos.cliente.ProductoClient;
 import com.nexocommerce.servicio_pedidos.dto.ActualizarEstadoPedidoRequest;
 import com.nexocommerce.servicio_pedidos.dto.PedidoRequest;
 import com.nexocommerce.servicio_pedidos.dto.PedidoResponse;
-import com.nexocommerce.servicio_pedidos.dto.ProductoResponse;
 import com.nexocommerce.servicio_pedidos.entity.EstadoPedido;
 import com.nexocommerce.servicio_pedidos.entity.Pedido;
 import com.nexocommerce.servicio_pedidos.exception.ResourceNotFoundException;
@@ -26,11 +24,15 @@ import static org.mockito.Mockito.*;
 
 /*
  * Pruebas unitarias del servicio de pedidos.
- * Se prueban los métodos de listar, buscar, crear,
+ *
+ * Se prueban los métodos principales:
+ * listar, buscar por ID, listar por usuario, crear pedido,
  * actualizar estado y cancelar pedido.
  *
- * También se prueba la integración simulada con ProductoClient,
- * que representa la comunicación con el microservicio de productos.
+ * Ahora servicio-pedidos no consulta directamente servicio-productos.
+ * Esa responsabilidad quedó en servicio-checkout.
+ * Por eso este test valida que servicio-pedidos reciba el pedido ya calculado
+ * y lo guarde correctamente.
  */
 @ExtendWith(MockitoExtension.class)
 class PedidoServiceTest {
@@ -38,15 +40,11 @@ class PedidoServiceTest {
     @Mock
     private PedidoRepository pedidoRepository;
 
-    @Mock
-    private ProductoClient productoClient;
-
     @InjectMocks
     private PedidoService pedidoService;
 
     private Pedido pedido;
     private PedidoRequest request;
-    private ProductoResponse productoResponse;
 
     @BeforeEach
     void setUp() {
@@ -63,24 +61,16 @@ class PedidoServiceTest {
                 .build();
 
         /*
-         * Ahora PedidoRequest solo recibe correoUsuario, productoId y cantidad.
-         * El nombre y precio del producto se obtienen desde ProductoClient.
+         * Ahora PedidoRequest recibe los datos ya calculados.
+         * Estos datos vienen desde servicio-checkout.
          */
         request = new PedidoRequest();
         request.setCorreoUsuario("juan@test.com");
         request.setProductoId(1L);
+        request.setNombreProducto("Teclado Mecánico");
         request.setCantidad(2);
-
-        /*
-         * Respuesta simulada del microservicio de productos.
-         */
-        productoResponse = new ProductoResponse();
-        productoResponse.setId(1L);
-        productoResponse.setNombre("Teclado Mecánico");
-        productoResponse.setDescripcion("Teclado gamer RGB");
-        productoResponse.setPrecio(new BigDecimal("45990"));
-        productoResponse.setStock(10);
-        productoResponse.setCategoria("Tecnología");
+        request.setPrecioUnitario(new BigDecimal("45990"));
+        request.setTotal(new BigDecimal("91980"));
     }
 
     @Test
@@ -92,9 +82,11 @@ class PedidoServiceTest {
         List<PedidoResponse> resultado = pedidoService.listar();
 
         // Then
+        assertNotNull(resultado);
         assertEquals(1, resultado.size());
         assertEquals("juan@test.com", resultado.get(0).getCorreoUsuario());
         assertEquals("Teclado Mecánico", resultado.get(0).getNombreProducto());
+        assertEquals(new BigDecimal("91980"), resultado.get(0).getTotal());
 
         verify(pedidoRepository, times(1)).findAll();
     }
@@ -110,6 +102,8 @@ class PedidoServiceTest {
         // Then
         assertNotNull(response);
         assertEquals(1L, response.getId());
+        assertEquals("juan@test.com", response.getCorreoUsuario());
+        assertEquals("Teclado Mecánico", response.getNombreProducto());
         assertEquals(EstadoPedido.PENDIENTE, response.getEstado());
         assertEquals(new BigDecimal("91980"), response.getTotal());
 
@@ -137,6 +131,7 @@ class PedidoServiceTest {
         List<PedidoResponse> resultado = pedidoService.listarPorUsuario("juan@test.com");
 
         // Then
+        assertNotNull(resultado);
         assertEquals(1, resultado.size());
         assertEquals("juan@test.com", resultado.get(0).getCorreoUsuario());
 
@@ -146,7 +141,6 @@ class PedidoServiceTest {
     @Test
     void crearPedidoCorrectamente() {
         // Given
-        when(productoClient.obtenerProductoPorId(1L)).thenReturn(productoResponse);
         when(pedidoRepository.save(any(Pedido.class))).thenReturn(pedido);
 
         // When
@@ -163,21 +157,7 @@ class PedidoServiceTest {
         assertEquals(new BigDecimal("91980"), response.getTotal());
         assertEquals(EstadoPedido.PENDIENTE, response.getEstado());
 
-        verify(productoClient, times(1)).obtenerProductoPorId(1L);
         verify(pedidoRepository, times(1)).save(any(Pedido.class));
-    }
-
-    @Test
-    void crearPedidoCuandoProductoNoExisteLanzaExcepcion() {
-        // Given
-        when(productoClient.obtenerProductoPorId(1L)).thenReturn(null);
-
-        // When / Then
-        assertThrows(RuntimeException.class,
-                () -> pedidoService.crear(request));
-
-        verify(productoClient, times(1)).obtenerProductoPorId(1L);
-        verify(pedidoRepository, never()).save(any(Pedido.class));
     }
 
     @Test
@@ -195,6 +175,7 @@ class PedidoServiceTest {
         // Then
         assertNotNull(response);
         assertEquals(EstadoPedido.ENVIADO, pedido.getEstado());
+        assertNotEquals(EstadoPedido.PENDIENTE, pedido.getEstado());
 
         verify(pedidoRepository, times(1)).findById(1L);
         verify(pedidoRepository, times(1)).save(pedido);
@@ -212,8 +193,22 @@ class PedidoServiceTest {
         // Then
         assertNotNull(response);
         assertEquals(EstadoPedido.CANCELADO, pedido.getEstado());
+        assertNotEquals(EstadoPedido.PENDIENTE, pedido.getEstado());
 
         verify(pedidoRepository, times(1)).findById(1L);
         verify(pedidoRepository, times(1)).save(pedido);
+    }
+
+    @Test
+    void eliminarPedidoCorrectamente() {
+        // Given
+        when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+
+        // When
+        pedidoService.eliminar(1L);
+
+        // Then
+        verify(pedidoRepository, times(1)).findById(1L);
+        verify(pedidoRepository, times(1)).delete(pedido);
     }
 }
