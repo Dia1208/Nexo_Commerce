@@ -2,84 +2,129 @@
 
 ## Descripción del proyecto
 
-NexoCommerce es una plataforma de comercio electrónico dedicada a la venta y gestión de productos en línea. El sistema permite administrar usuarios, productos, pedidos, pagos, notificaciones y reportes de forma segura y organizada.
+NexoCommerce es una plataforma backend de comercio electrónico desarrollada con arquitectura de microservicios. El sistema permite gestionar autenticación, usuarios, productos, pedidos, pagos, notificaciones, reportes y el flujo de checkout de forma separada, organizada y escalable.
 
-El proyecto fue desarrollado con arquitectura de microservicios utilizando Spring Boot. Cada funcionalidad principal está separada en un servicio independiente, lo que permite mayor escalabilidad, mantenimiento y organización del sistema.
+El proyecto fue desarrollado con Spring Boot y aplica una arquitectura distribuida donde cada microservicio tiene una responsabilidad específica. La comunicación entre servicios se realiza mediante endpoints REST y, en el flujo principal de compra, mediante WebClient.
 
-La comunicación principal se realiza a través de un API Gateway, que funciona como punto único de entrada para las peticiones del cliente.
+El sistema cuenta con un API Gateway como punto único de entrada, documentación Swagger/OpenAPI, persistencia con MySQL, pruebas unitarias con JUnit y Mockito, y despliegue local mediante Docker Compose.
 
 ---
 
 ## Integrantes
 
-* Diego Gonzalez Ballesteros
+- Diego Gonzalez Ballesteros
 
 ---
 
 ## Tecnologías utilizadas
 
-* Java 21
-* Spring Boot
-* Spring Web
-* Spring WebFlux
-* Spring Data JPA
-* Spring Security
-* Spring Cloud Gateway
-* JWT
-* MySQL
-* Lombok
-* Swagger / OpenAPI
-* Maven
-* Git / GitHub
-* Postman
-* IntelliJ IDEA
-* JUnit 5
-* Mockito
+- Java 21
+- Spring Boot
+- Spring Web
+- Spring WebFlux
+- Spring Data JPA
+- Hibernate
+- MySQL
+- Spring Security
+- JWT
+- Spring Cloud Gateway
+- WebClient
+- Lombok
+- Swagger / OpenAPI
+- JUnit 5
+- Mockito
+- Maven
+- Docker
+- Docker Compose
+- Git / GitHub
+- Postman
+- IntelliJ IDEA
 
 ---
 
 ## Arquitectura del sistema
 
-El sistema está dividido en los siguientes microservicios:
+El sistema está dividido en microservicios independientes. Cada microservicio se organiza siguiendo el patrón CSR:
 
-| Microservicio           | Puerto | Descripción                         |
-| ----------------------- | -----: | ----------------------------------- |
-| servicio-gateway        |   8080 | Punto único de entrada al sistema   |
-| servicio-autenticacion  |   8081 | Registro, login y generación de JWT |
-| servicio-usuarios       |   8082 | Gestión de usuarios                 |
-| servicio-productos      |   8083 | Gestión de productos                |
-| servicio-pedidos        |   8084 | Gestión de pedidos                  |
-| servicio-pagos          |   8085 | Gestión de pagos                    |
-| servicio-notificaciones |   8086 | Gestión de notificaciones           |
-| servicio-reportes       |   8087 | Gestión de reportes                 |
+- Controller: expone los endpoints REST.
+- Service: contiene la lógica de negocio.
+- Repository: comunica con la base de datos.
+- Model / Entity: representa las entidades del dominio.
+- DTO: transporta datos entre capas o entre microservicios.
+
+El API Gateway funciona como punto de entrada centralizado para redirigir las solicitudes hacia los microservicios correspondientes.
+
+---
+
+## Microservicios implementados
+
+| Microservicio | Puerto | Responsabilidad |
+|---|---:|---|
+| servicio-gateway | 8080 | Punto único de entrada al sistema y enrutamiento hacia los microservicios |
+| servicio-autenticacion | 8081 | Registro, login y generación de token JWT |
+| servicio-usuarios | 8082 | Gestión CRUD de usuarios |
+| servicio-productos | 8083 | Gestión CRUD de productos |
+| servicio-pedidos | 8084 | Gestión de pedidos |
+| servicio-pagos | 8085 | Gestión de pagos |
+| servicio-notificaciones | 8086 | Gestión de notificaciones |
+| servicio-reportes | 8087 | Gestión de reportes |
+| servicio-checkout | 8088 | Orquestación del flujo de compra |
+
+---
+
+## Microservicio orquestador: servicio-checkout
+
+El microservicio `servicio-checkout` actúa como orquestador del flujo de compra.
+
+Antes, `servicio-pedidos` consultaba directamente a `servicio-productos`. Luego se ajustó la arquitectura para separar mejor las responsabilidades.
+
+Ahora el flujo funciona así:
+
+1. `servicio-checkout` recibe el correo del usuario, el ID del producto y la cantidad.
+2. `servicio-checkout` consulta `servicio-productos` usando WebClient.
+3. Valida que el producto exista y que tenga stock suficiente.
+4. Calcula el total del pedido.
+5. Envía el pedido armado a `servicio-pedidos`.
+6. `servicio-pedidos` guarda y gestiona el pedido.
+
+Esto permite que:
+
+- `servicio-productos` se encargue de los productos.
+- `servicio-checkout` coordine el flujo de compra.
+- `servicio-pedidos` se encargue solo de guardar y administrar pedidos.
 
 ---
 
 ## Base de datos
 
-Cada microservicio utiliza su propia base de datos en MySQL.
+El proyecto utiliza MySQL. Cada microservicio con persistencia utiliza su propia base de datos.
+
+El microservicio `servicio-checkout` no tiene base de datos propia porque su función es orquestar el flujo entre productos y pedidos.
+
+Bases de datos utilizadas:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS nexocommerce_autenticacion_db;
-CREATE DATABASE IF NOT EXISTS nexocommerce_usuarios_db;
-CREATE DATABASE IF NOT EXISTS nexocommerce_productos_db;
-CREATE DATABASE IF NOT EXISTS nexocommerce_pedidos_db;
-CREATE DATABASE IF NOT EXISTS nexocommerce_pagos_db;
-CREATE DATABASE IF NOT EXISTS nexocommerce_notificaciones_db;
-CREATE DATABASE IF NOT EXISTS nexocommerce_reportes_db;
+CREATE DATABASE IF NOT EXISTS nexocommerce_autenticacion;
+CREATE DATABASE IF NOT EXISTS nexocommerce_usuarios;
+CREATE DATABASE IF NOT EXISTS nexocommerce_productos;
+CREATE DATABASE IF NOT EXISTS nexocommerce_pedidos;
+CREATE DATABASE IF NOT EXISTS nexocommerce_pagos;
+CREATE DATABASE IF NOT EXISTS nexocommerce_notificaciones;
+CREATE DATABASE IF NOT EXISTS nexocommerce_reportes;
 ```
 
 Relación entre microservicio y base de datos:
 
-| Microservicio           | Base de datos                  |
-| ----------------------- | ------------------------------ |
-| servicio-autenticacion  | nexocommerce_autenticacion_db  |
-| servicio-usuarios       | nexocommerce_usuarios_db       |
-| servicio-productos      | nexocommerce_productos_db      |
-| servicio-pedidos        | nexocommerce_pedidos_db        |
-| servicio-pagos          | nexocommerce_pagos_db          |
-| servicio-notificaciones | nexocommerce_notificaciones_db |
-| servicio-reportes       | nexocommerce_reportes_db       |
+| Microservicio | Base de datos |
+|---|---|
+| servicio-autenticacion | nexocommerce_autenticacion |
+| servicio-usuarios | nexocommerce_usuarios |
+| servicio-productos | nexocommerce_productos |
+| servicio-pedidos | nexocommerce_pedidos |
+| servicio-pagos | nexocommerce_pagos |
+| servicio-notificaciones | nexocommerce_notificaciones |
+| servicio-reportes | nexocommerce_reportes |
+| servicio-checkout | No utiliza base de datos propia |
 
 ---
 
@@ -91,137 +136,53 @@ Cada microservicio contiene su propia configuración en:
 src/main/resources/application.properties
 ```
 
-En el caso del `servicio-gateway`, la configuración principal se encuentra en:
+o:
 
 ```txt
 src/main/resources/application.yml
 ```
 
-El Gateway utiliza `application.yml` para definir:
+El `servicio-gateway` utiliza `application.yml` para definir:
 
-* Rutas hacia los microservicios.
-* Rutas de Swagger centralizado.
-* Configuración JWT.
-* Configuración de Actuator.
+- Puerto del Gateway.
+- Rutas hacia los microservicios.
+- Rutas de Swagger centralizado.
+- Configuración JWT.
+- Configuración de Actuator.
+- Variables de entorno para ejecución con Docker Compose.
+
+El proyecto padre contiene:
+
+```txt
+docker-compose.yml
+```
+
+Este archivo permite levantar todos los microservicios en contenedores Docker.
 
 ---
 
 ## API Gateway
 
-El microservicio `servicio-gateway` se ejecuta en el puerto `8080` y redirecciona las peticiones a los demás servicios.
+El microservicio `servicio-gateway` se ejecuta en el puerto `8080`.
 
-Rutas configuradas:
-
-| Ruta Gateway             | Microservicio destino   |
-| ------------------------ | ----------------------- |
-| `/api/auth/**`           | servicio-autenticacion  |
-| `/api/usuarios/**`       | servicio-usuarios       |
-| `/api/productos/**`      | servicio-productos      |
-| `/api/pedidos/**`        | servicio-pedidos        |
-| `/api/pagos/**`          | servicio-pagos          |
-| `/api/notificaciones/**` | servicio-notificaciones |
-| `/api/reportes/**`       | servicio-reportes       |
-
-El Gateway permite consumir los servicios desde una sola entrada:
+Base URL del Gateway:
 
 ```txt
 http://localhost:8080
 ```
 
----
+Rutas principales configuradas:
 
-## Seguridad
-
-El sistema utiliza JWT para proteger las rutas privadas.
-
-Flujo de seguridad:
-
-1. El usuario se registra o inicia sesión en `servicio-autenticacion`.
-2. El servicio de autenticación genera un token JWT.
-3. El cliente envía el token en cada petición protegida.
-4. El Gateway valida el token antes de permitir el acceso a los microservicios.
-
-Formato del header:
-
-```txt
-Authorization: Bearer TOKEN_GENERADO
-```
-
-Rutas públicas:
-
-```txt
-/api/auth/**
-/api/gateway/**
-/actuator/health
-/swagger-ui/**
-/swagger-ui.html
-/v3/api-docs/**
-```
-
----
-
-## Swagger centralizado
-
-El proyecto cuenta con documentación Swagger/OpenAPI centralizada desde el API Gateway.
-
-URL principal:
-
-```txt
-http://localhost:8080/swagger-ui/index.html
-```
-
-Desde esta pantalla se puede seleccionar la documentación de:
-
-* Autenticación
-* Usuarios
-* Productos
-* Pedidos
-* Pagos
-* Notificaciones
-* Reportes
-
-También se pueden consultar directamente los JSON OpenAPI mediante el Gateway:
-
-| Microservicio  | URL Gateway                                        |
-| -------------- | -------------------------------------------------- |
-| Autenticación  | `http://localhost:8080/v3/api-docs/autenticacion`  |
-| Usuarios       | `http://localhost:8080/v3/api-docs/usuarios`       |
-| Productos      | `http://localhost:8080/v3/api-docs/productos`      |
-| Pedidos        | `http://localhost:8080/v3/api-docs/pedidos`        |
-| Pagos          | `http://localhost:8080/v3/api-docs/pagos`          |
-| Notificaciones | `http://localhost:8080/v3/api-docs/notificaciones` |
-| Reportes       | `http://localhost:8080/v3/api-docs/reportes`       |
-
-Cada microservicio también conserva su propio Swagger individual:
-
-| Microservicio  | URL                                           |
-| -------------- | --------------------------------------------- |
-| Autenticación  | `http://localhost:8081/swagger-ui/index.html` |
-| Usuarios       | `http://localhost:8082/swagger-ui/index.html` |
-| Productos      | `http://localhost:8083/swagger-ui/index.html` |
-| Pedidos        | `http://localhost:8084/swagger-ui/index.html` |
-| Pagos          | `http://localhost:8085/swagger-ui/index.html` |
-| Notificaciones | `http://localhost:8086/swagger-ui/index.html` |
-| Reportes       | `http://localhost:8087/swagger-ui/index.html` |
-
----
-
-## Ejecución del proyecto
-
-Para ejecutar el sistema completo, iniciar los microservicios en este orden:
-
-```txt
-1. ServicioAutenticacionApplication  → puerto 8081
-2. ServicioUsuariosApplication       → puerto 8082
-3. ServicioProductosApplication      → puerto 8083
-4. ServicioPedidosApplication        → puerto 8084
-5. ServicioPagosApplication          → puerto 8085
-6. ServicioNotificacionesApplication → puerto 8086
-7. ServicioReportesApplication       → puerto 8087
-8. ServicioGatewayApplication        → puerto 8080
-```
-
-El Gateway se debe ejecutar al final porque es el punto de entrada que redirecciona hacia los demás microservicios.
+| Ruta Gateway | Microservicio destino |
+|---|---|
+| `/api/auth/**` | servicio-autenticacion |
+| `/api/usuarios/**` | servicio-usuarios |
+| `/api/productos/**` | servicio-productos |
+| `/api/pedidos/**` | servicio-pedidos |
+| `/api/pagos/**` | servicio-pagos |
+| `/api/notificaciones/**` | servicio-notificaciones |
+| `/api/reportes/**` | servicio-reportes |
+| `/api/checkout/**` | servicio-checkout |
 
 Para verificar que el Gateway está activo:
 
@@ -239,9 +200,196 @@ Respuesta esperada:
 
 ---
 
+## Seguridad
+
+El sistema utiliza JWT para proteger rutas privadas.
+
+Flujo de seguridad:
+
+1. El usuario se registra o inicia sesión en `servicio-autenticacion`.
+2. El servicio de autenticación genera un token JWT.
+3. El cliente envía el token en cada petición protegida.
+4. El Gateway valida el token antes de permitir el acceso a los microservicios.
+
+Formato del header:
+
+```txt
+Authorization: Bearer TOKEN_GENERADO
+```
+
+Rutas públicas principales:
+
+```txt
+/api/auth/**
+/actuator/health
+/swagger-ui/**
+/swagger-ui.html
+/v3/api-docs/**
+```
+
+---
+
+## Swagger / OpenAPI
+
+El proyecto cuenta con documentación Swagger/OpenAPI centralizada desde el API Gateway.
+
+URL principal:
+
+```txt
+http://localhost:8080/swagger-ui.html
+```
+
+También puede abrirse como:
+
+```txt
+http://localhost:8080/swagger-ui/index.html
+```
+
+Desde Swagger se puede seleccionar la documentación de:
+
+- Autenticación
+- Usuarios
+- Productos
+- Pedidos
+- Pagos
+- Notificaciones
+- Reportes
+- Checkout
+
+Documentación OpenAPI por microservicio mediante Gateway:
+
+| Microservicio | URL Gateway |
+|---|---|
+| Autenticación | `http://localhost:8080/v3/api-docs/autenticacion` |
+| Usuarios | `http://localhost:8080/v3/api-docs/usuarios` |
+| Productos | `http://localhost:8080/v3/api-docs/productos` |
+| Pedidos | `http://localhost:8080/v3/api-docs/pedidos` |
+| Pagos | `http://localhost:8080/v3/api-docs/pagos` |
+| Notificaciones | `http://localhost:8080/v3/api-docs/notificaciones` |
+| Reportes | `http://localhost:8080/v3/api-docs/reportes` |
+| Checkout | `http://localhost:8080/v3/api-docs/checkout` |
+
+Swagger individual por microservicio:
+
+| Microservicio | URL |
+|---|---|
+| Autenticación | `http://localhost:8081/swagger-ui/index.html` |
+| Usuarios | `http://localhost:8082/swagger-ui/index.html` |
+| Productos | `http://localhost:8083/swagger-ui/index.html` |
+| Pedidos | `http://localhost:8084/swagger-ui/index.html` |
+| Pagos | `http://localhost:8085/swagger-ui/index.html` |
+| Notificaciones | `http://localhost:8086/swagger-ui/index.html` |
+| Reportes | `http://localhost:8087/swagger-ui/index.html` |
+| Checkout | `http://localhost:8088/swagger-ui/index.html` |
+
+---
+
+## Ejecución local desde IntelliJ
+
+Para ejecutar el sistema localmente desde IntelliJ:
+
+1. Encender MySQL desde Laragon, XAMPP o servicio local.
+2. Crear las bases de datos requeridas.
+3. Abrir el proyecto en IntelliJ IDEA.
+4. Ejecutar los microservicios en este orden recomendado:
+
+```txt
+1. ServicioAutenticacionApplication  → puerto 8081
+2. ServicioUsuariosApplication       → puerto 8082
+3. ServicioProductosApplication      → puerto 8083
+4. ServicioPedidosApplication        → puerto 8084
+5. ServicioPagosApplication          → puerto 8085
+6. ServicioNotificacionesApplication → puerto 8086
+7. ServicioReportesApplication       → puerto 8087
+8. ServicioCheckoutApplication       → puerto 8088
+9. ServicioGatewayApplication        → puerto 8080
+```
+
+El Gateway se ejecuta al final porque redirecciona hacia los demás microservicios.
+
+---
+
+## Ejecución con Docker Compose
+
+El proyecto incluye Dockerfile en cada microservicio y un archivo `docker-compose.yml` en la carpeta raíz.
+
+Antes de ejecutar Docker Compose:
+
+1. Abrir Docker Desktop.
+2. Encender MySQL local.
+3. Verificar que MySQL esté activo en el puerto 3306.
+4. Crear las bases de datos necesarias.
+
+Verificar MySQL desde PowerShell:
+
+```powershell
+Test-NetConnection 127.0.0.1 -Port 3306
+```
+
+Debe responder:
+
+```txt
+TcpTestSucceeded : True
+```
+
+Construir imágenes:
+
+```powershell
+cd C:\Users\WindowsOS\Nexo_Commerce
+docker compose build
+```
+
+Levantar todos los contenedores:
+
+```powershell
+cd C:\Users\WindowsOS\Nexo_Commerce
+docker compose up
+```
+
+Levantar y reconstruir:
+
+```powershell
+cd C:\Users\WindowsOS\Nexo_Commerce
+docker compose up --build
+```
+
+Ver contenedores:
+
+```powershell
+docker compose ps -a
+```
+
+Detener todos los contenedores:
+
+```powershell
+docker compose down
+```
+
+Ver logs de un servicio:
+
+```powershell
+docker compose logs servicio-checkout
+```
+
+Ejemplo de estado esperado:
+
+```txt
+servicio-autenticacion   Up
+servicio-checkout        Up
+servicio-gateway         Up
+servicio-notificaciones  Up
+servicio-pagos           Up
+servicio-pedidos         Up
+servicio-productos       Up
+servicio-reportes        Up
+servicio-usuarios        Up
+```
+
+---
+
 ## Endpoints principales
 
-Todas las rutas siguientes se pueden probar desde el Gateway usando el puerto `8080`.
+Todas las rutas siguientes pueden probarse desde el Gateway usando el puerto `8080`.
 
 ---
 
@@ -424,7 +572,10 @@ DELETE http://localhost:8080/api/productos/1
 
 ## Pedidos
 
-### Crear pedido
+El microservicio `servicio-pedidos` se encarga de guardar y administrar pedidos.  
+El flujo recomendado para crear un pedido completo es usar `servicio-checkout`.
+
+### Crear pedido directamente
 
 ```http
 POST http://localhost:8080/api/pedidos
@@ -438,7 +589,8 @@ Body:
   "productoId": 1,
   "nombreProducto": "Teclado Mecánico",
   "cantidad": 2,
-  "precioUnitario": 45990
+  "precioUnitario": 45990,
+  "total": 91980
 }
 ```
 
@@ -494,6 +646,62 @@ Body:
 
 ```http
 PUT http://localhost:8080/api/pedidos/1/cancelar
+```
+
+### Eliminar pedido
+
+```http
+DELETE http://localhost:8080/api/pedidos/1
+```
+
+---
+
+## Checkout
+
+El microservicio `servicio-checkout` orquesta el flujo de compra entre productos y pedidos.
+
+### Test de funcionamiento
+
+```http
+GET http://localhost:8088/api/checkout/test
+```
+
+Respuesta esperada:
+
+```txt
+Servicio Checkout funcionando correctamente
+```
+
+### Realizar checkout
+
+```http
+POST http://localhost:8088/api/checkout
+```
+
+Body:
+
+```json
+{
+  "correoUsuario": "juan@test.com",
+  "productoId": 1,
+  "cantidad": 2
+}
+```
+
+Respuesta esperada:
+
+```json
+{
+  "mensaje": "Checkout realizado correctamente",
+  "pedidoId": 1,
+  "correoUsuario": "juan@test.com",
+  "productoId": 1,
+  "nombreProducto": "Teclado Mecánico",
+  "cantidad": 2,
+  "precioUnitario": 45990.00,
+  "total": 91980.00,
+  "estado": "PENDIENTE"
+}
 ```
 
 ---
@@ -663,24 +871,33 @@ DELETE http://localhost:8080/api/reportes/1
 Para probar el sistema completo se recomienda seguir este flujo:
 
 ```txt
-1. Registrar usuario en autenticación.
-2. Iniciar sesión y copiar el token JWT.
-3. Crear usuario en el microservicio de usuarios.
-4. Crear producto.
-5. Crear pedido usando el ID del producto.
-6. Actualizar el estado del pedido.
-7. Crear pago asociado al pedido.
-8. Aprobar pago.
+1. Encender MySQL.
+2. Levantar los microservicios desde IntelliJ o Docker Compose.
+3. Crear un producto.
+4. Ejecutar checkout usando el ID del producto.
+5. Verificar que checkout consulte productos.
+6. Verificar que checkout cree el pedido.
+7. Listar pedidos para confirmar el registro.
+8. Crear pago asociado al pedido.
 9. Crear notificación.
-10. Marcar notificación como enviada.
-11. Crear reporte.
-12. Listar reportes por tipo.
+10. Crear reporte.
 ```
 
-Todas las peticiones protegidas deben enviarse con el header:
+Flujo principal validado:
 
 ```txt
-Authorization: Bearer TOKEN_GENERADO
+Postman
+→ servicio-checkout
+→ servicio-productos
+→ servicio-pedidos
+→ MySQL
+```
+
+Resultado esperado del flujo checkout:
+
+```txt
+201 Created
+Checkout realizado correctamente
 ```
 
 ---
@@ -724,7 +941,9 @@ Cuando el JSON tiene formato incorrecto:
 
 ## Pruebas unitarias
 
-El proyecto incluye pruebas unitarias para los servicios principales:
+El proyecto incluye pruebas unitarias con JUnit 5 y Mockito.
+
+Pruebas implementadas:
 
 ```txt
 AuthServiceTest
@@ -739,14 +958,101 @@ GatewayControllerTest
 
 Estas pruebas validan operaciones como:
 
-* Registro y login.
-* Creación y consulta de usuarios.
-* CRUD de productos.
-* Creación y actualización de pedidos.
-* Creación, aprobación y rechazo de pagos.
-* Creación y actualización de notificaciones.
-* Creación, consulta y eliminación de reportes.
-* Verificación básica del Gateway.
+- Registro y login.
+- Creación y consulta de usuarios.
+- CRUD de productos.
+- Creación, búsqueda, actualización, cancelación y eliminación de pedidos.
+- Creación, aprobación y rechazo de pagos.
+- Creación y actualización de notificaciones.
+- Creación, consulta y eliminación de reportes.
+- Verificación básica del Gateway.
+
+Ejemplo de pruebas actualizadas:
+
+- `PedidoServiceTest`: valida que pedidos reciba datos ya calculados desde checkout y guarde correctamente.
+- `UsuarioServiceTest`: valida operaciones principales del servicio de usuarios usando mocks.
+
+Para ejecutar pruebas desde IntelliJ:
+
+```txt
+Maven > Lifecycle > test
+```
+
+Para ejecutar pruebas desde terminal con Maven:
+
+```powershell
+mvn test
+```
+
+---
+
+## Docker
+
+Cada microservicio cuenta con su propio `Dockerfile`.
+
+El proyecto padre cuenta con:
+
+```txt
+docker-compose.yml
+```
+
+Este archivo permite levantar todo el ecosistema de microservicios en contenedores independientes.
+
+Comandos útiles:
+
+```powershell
+docker compose build
+```
+
+```powershell
+docker compose up
+```
+
+```powershell
+docker compose up --build
+```
+
+```powershell
+docker compose down
+```
+
+```powershell
+docker compose ps -a
+```
+
+```powershell
+docker compose logs servicio-checkout
+```
+
+---
+
+## Evidencia de funcionamiento
+
+Se validó correctamente:
+
+- Construcción de imágenes Docker.
+- Ejecución de todos los contenedores con Docker Compose.
+- Conexión con MySQL local.
+- Funcionamiento del API Gateway.
+- Funcionamiento de Swagger/OpenAPI.
+- Comunicación entre `servicio-checkout`, `servicio-productos` y `servicio-pedidos`.
+- Prueba real desde Postman con respuesta `201 Created`.
+
+Respuesta obtenida en la prueba de checkout:
+
+```json
+{
+  "mensaje": "Checkout realizado correctamente",
+  "pedidoId": 1,
+  "correoUsuario": "juan@test.com",
+  "productoId": 1,
+  "nombreProducto": "Teclado Mecánico",
+  "cantidad": 2,
+  "precioUnitario": 45990.00,
+  "total": 91980.00,
+  "estado": "PENDIENTE"
+}
+```
 
 ---
 
@@ -759,22 +1065,44 @@ git commit -m "mensaje del commit"
 git push origin main
 ```
 
+Commits importantes realizados:
+
+```txt
+agrega servicio checkout como orquestador
+configura docker compose para microservicios
+actualiza documentacion del proyecto
+```
+
+---
+
+## Repositorio
+
+Repositorio GitHub:
+
+```txt
+https://github.com/Dia1208/Nexo_Commerce.git
+```
+
 ---
 
 ## Estado final del proyecto
 
 El sistema queda organizado como una arquitectura de microservicios funcional, con:
 
-* Separación por responsabilidades.
-* Base de datos independiente por microservicio.
-* Gateway como punto único de entrada.
-* Autenticación mediante JWT.
-* Documentación Swagger individual por microservicio.
-* Documentación Swagger centralizada desde el API Gateway.
-* Validaciones de datos.
-* Manejo de errores personalizado.
-* Pruebas unitarias.
-* Control de versiones con Git y GitHub.
+- Separación por responsabilidades.
+- Patrón CSR aplicado.
+- Base de datos independiente por microservicio.
+- Gateway como punto único de entrada.
+- Autenticación mediante JWT.
+- Comunicación REST entre microservicios con WebClient.
+- Microservicio `servicio-checkout` como orquestador.
+- Documentación Swagger individual y centralizada.
+- Validaciones de datos.
+- Manejo de errores personalizado.
+- Pruebas unitarias.
+- Dockerfile en cada microservicio.
+- Docker Compose en el proyecto padre.
+- Control de versiones con Git y GitHub.
 
 ---
 
@@ -782,4 +1110,12 @@ El sistema queda organizado como una arquitectura de microservicios funcional, c
 
 Para ejecutar correctamente el sistema se debe tener MySQL iniciado y las bases de datos creadas.
 
-También se recomienda iniciar primero los microservicios internos y al final el Gateway.
+Si las tablas se eliminan o se recrean, es necesario volver a crear datos de prueba, especialmente productos, antes de ejecutar el flujo de checkout.
+
+El Gateway se debe ejecutar al final cuando se trabaja desde IntelliJ, ya que depende de que los microservicios destino estén levantados.
+
+Cuando se trabaja con Docker Compose, todos los microservicios se levantan juntos mediante:
+
+```powershell
+docker compose up
+```
